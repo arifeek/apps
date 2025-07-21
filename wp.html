@@ -183,7 +183,7 @@
 <body>
 
 <header>
-  <h1>MWeekly Planner</h1>
+  <h1> Planner</h1>
 </header>
 
 <div class="week-range" id="weekRangeDisplay"></div>
@@ -203,7 +203,7 @@
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Used for Date object's getDay()
   const plannerDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // Our display order
   const categories = ["To-Do", "Meals", "Exercise", "Events", "Mood"];
-  const STORAGE_KEY = "weeklyLifePlannerData";
+  const STORAGE_KEY = "LifePlannerData";
   let currentDayIndex = 0; // 0 for Mon, 6 for Sun
 
   let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -317,7 +317,7 @@
   // Modified exportToMarkdown function for iOS compatibility
   // Modified exportToMarkdown function for iOS compatibility
   function exportToMarkdown() {
-    let markdownContent = `# Weekly Life Planner Data\n\n`;
+    let markdownContent = `#  Life Planner Data\n\n`;
 
     plannerDays.forEach((dayKey, index) => {
       const fullDate = weekDates[index] ? formatFullDate(weekDates[index]) : '';
@@ -343,7 +343,7 @@
 
     const blob = new Blob([markdownContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    const filename = `weekly_planner_${formatDisplayDate(weekDates[0])}_to_${formatDisplayDate(weekDates[6])}.md`;
+    const filename = `_planner_${formatDisplayDate(weekDates[0])}_to_${formatDisplayDate(weekDates[6])}.md`;
 
     // **Alternative strategy for iOS: Create and directly navigate/assign**
     // This often works better than appending to DOM and then click()
