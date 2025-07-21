@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Lighter, slightly warmer background */
+        }
+        /* Custom scrollbar for textareas */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Subtle animation for decision cards */
+        .decision-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .decision-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* General button styling for consistent look */
+        .btn {
+            /* Increased shadow, more pronounced hover scale, and stronger ring */
+            padding-top: 0.75rem; /* py-3 */
+            padding-bottom: 0.75rem; /* py-3 */
+            padding-left: 1.5rem; /* px-6 */
+            padding-right: 1.5rem; /* px-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            outline: none; /* focus:outline-none */
+            --tw-ring-offset-shadow: var(--tw-ring-shadow, 0 0 #0000);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color); /* focus:ring-4 */
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow-2xl); /* focus:ring-offset-2, shadow-2xl */
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms; /* transition duration-300 */
+            transform: scale(1); /* initial transform */
+        }
+        .btn:hover {
+            transform: scale(1.10); /* hover:scale-110 */
+        }
+        .btn-primary {
+            /* Vibrant teal gradient */
+            background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); /* bg-gradient-to-br */
+            --tw-gradient-from: #14b8a6; /* from-teal-500 */
+            --tw-gradient-to: #0d9488; /* to-teal-700 */
+            color: #e80691; /* text-white */
+        }
+        .btn-primary:hover {
+            --tw-gradient-from: #0f766e; /* hover:from-teal-600 */
+            --tw-gradient-to: #047857; /* hover:to-teal-800 */
+            filter: brightness(1.1); /* hover:brightness-110 */
+        }
+        .btn-primary:focus {
+            --tw-ring-color: #14b8a6; /* focus:ring-teal-500 */
+        }
+
+        .btn-secondary {
+            /* Light green with border */
+            background-color: #bbf7d0; /* bg-green-200 */
+            color: #166534; /* text-green-800 */
+            border-width: 1px; /* border */
+            border-color: #4ade80; /* border-green-400 */
+        }
+        .btn-secondary:hover {
+            background-color: #86efac; /* hover:bg-green-300 */
+            filter: brightness(1.1); /* hover:brightness-110 */
+        }
+        .btn-secondary:focus {
+            --tw-ring-color: #4ade80; /* focus:ring-green-400 */
+        }
+
+        .btn-danger {
+            /* Stronger red gradient */
+            background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); /* bg-gradient-to-br */
+            --tw-gradient-from: #dc2626; /* from-red-600 */
+            --tw-gradient-to: #991b1b; /* to-red-800 */
+            color: #ffffff; /* text-white */
+        }
+        .btn-danger:hover {
+            --tw-gradient-from: #b91c1c; /* hover:from-red-700 */
+            --tw-gradient-to: #7f1d1d; /* hover:to-red-900 */
+            filter: brightness(1.1); /* hover:brightness-110 */
+        }
+        .btn-danger:focus {
+            --tw-ring-color: #ef4444; /* focus:ring-red-500 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center"> <!-- Removed p-4 from body -->
+    <div class="max-w-4xl w-full bg-white rounded-lg shadow-xl p-4 md:p-8 space-y-8"> <!-- Responsive padding -->
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Decision Tracker</h1>
+
+        <!-- Add New Decision Form -->
+        <div class="bg-teal-50 p-6 rounded-lg shadow-inner"> <!-- Vibrant teal background -->
+            <h2 class="text-2xl font-semibold text-teal-700 mb-4">Record a New Decision</h2> <!-- Vibrant teal text -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="decisionTitle" class="block text-sm font-medium text-gray-700 mb-1">Decision Title</label>
+                    <input type="text" id="decisionTitle" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 shadow-sm" placeholder="e.g., Career Change, New Home Purchase">
+                </div>
+                <div>
+                    <label for="decisionDate" class="block text-sm font-medium text-gray-700 mb-1">Decision Date</label>
+                    <input type="date" id="decisionDate" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 shadow-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="pros" class="block text-sm font-medium text-gray-700 mb-1">Pros</label>
+                    <textarea id="pros" rows="4" class="w-full p-3 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500 shadow-sm" placeholder="List the advantages..."></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="cons" class="block text-sm font-medium text-gray-700 mb-1">Cons</label>
+                    <textarea id="cons" rows="4" class="w-full p-3 border border-red-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm" placeholder="List the disadvantages..."></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="outcome" class="block text-sm font-medium text-gray-700 mb-1">Outcome</label>
+                    <textarea id="outcome" rows="4" class="w-full p-3 border border-purple-300 rounded-md focus:ring-purple-500 focus:border-purple-500 shadow-sm" placeholder="What happened as a result of this decision?"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="lessonsLearned" class="block text-sm font-medium text-gray-700 mb-1">Lessons Learned</label>
+                    <textarea id="lessonsLearned" rows="4" class="w-full p-3 border border-yellow-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500 shadow-sm" placeholder="What did you learn from this experience?"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="futureMessage" class="block text-sm font-medium text-gray-700 mb-1">Message to Future You</label>
+                    <textarea id="futureMessage" rows="3" class="w-full p-3 border border-orange-300 rounded-md focus:ring-orange-500 focus:border-orange-500 shadow-sm" placeholder="Leave a note for your future self!"></textarea>
+                </div>
+            </div>
+            <button id="addDecisionBtn" class="mt-6 w-full btn btn-primary">
+                Add Decision
+            </button>
+        </div>
+
+        <!-- Message Box (for alerts) -->
+        <div id="messageBox" class="hidden bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md relative" role="alert">
+            <span id="messageText" class="block sm:inline"></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="document.getElementById('messageBox').classList.add('hidden');">
+                <svg class="fill-current h-6 w-6 text-yellow-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+            </span>
+        </div>
+
+        <!-- Import/Export and Search Section -->
+        <div class="bg-gray-100 p-6 rounded-lg shadow-inner flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <button id="exportBtn" class="btn btn-secondary w-full sm:w-auto">Export to Markdown</button>
+                <input type="file" id="importFile" accept=".md" class="hidden">
+                <button id="importBtn" class="btn btn-secondary w-full sm:w-auto">Import from Markdown</button>
+            </div>
+            <div class="w-full md:w-1/2">
+                <label for="searchInput" class="sr-only">Search Decisions</label>
+                <input type="text" id="searchInput" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 shadow-sm" placeholder="Search decisions by keyword...">
+            </div>
+        </div>
+
+        <!-- Display Decisions Section -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Recorded Decisions</h2>
+            <div id="decisionsList" class="space-y-6">
+                <!-- Decisions will be dynamically loaded here -->
+                <p id="noDecisionsMessage" class="text-gray-500 text-center py-8">No decisions recorded yet. Start by adding one above!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array to store decision objects
+        let decisions = [];
+
+        // Get DOM elements
+        const decisionTitleInput = document.getElementById('decisionTitle');
+        const decisionDateInput = document.getElementById('decisionDate');
+        const prosInput = document.getElementById('pros');
+        const consInput = document.getElementById('cons');
+        const outcomeInput = document.getElementById('outcome');
+        const lessonsLearnedInput = document.getElementById('lessonsLearned');
+        const futureMessageInput = document.getElementById('futureMessage');
+        const addDecisionBtn = document.getElementById('addDecisionBtn');
+        const decisionsList = document.getElementById('decisionsList');
+        const noDecisionsMessage = document.getElementById('noDecisionsMessage');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importFileInput = document.getElementById('importFile');
+        const searchInput = document.getElementById('searchInput');
+
+
+        /**
+         * Displays a temporary message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message (e.g., 'success', 'error', 'warning').
+         */
+        function showMessage(message, type = 'warning') {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-green-100', 'border-green-400', 'text-green-700', 'bg-red-100', 'border-red-400', 'text-red-700', 'bg-yellow-100', 'border-yellow-400', 'text-yellow-700');
+
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else { // default to warning
+                messageBox.classList.add('bg-yellow-100', 'border-yellow-400', 'text-yellow-700');
+            }
+            messageBox.classList.remove('hidden');
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        /**
+         * Adds a new decision to the 'decisions' array and updates the display.
+         */
+        function addDecision() {
+            const title = decisionTitleInput.value.trim();
+            const date = decisionDateInput.value;
+            const pros = prosInput.value.trim();
+            const cons = consInput.value.trim();
+            const outcome = outcomeInput.value.trim();
+            const lessons = lessonsLearnedInput.value.trim();
+            const futureMsg = futureMessageInput.value.trim();
+
+            if (!title || !date) {
+                showMessage('Please fill in the Decision Title and Date.', 'warning');
+                return;
+            }
+
+            const newDecision = {
+                id: Date.now(), // Unique ID for the decision
+                title,
+                date,
+                pros,
+                cons,
+                outcome,
+                lessons,
+                futureMsg
+            };
+
+            decisions.push(newDecision);
+            saveDecisions(); // Save to localStorage
+            displayDecisions(); // Display all decisions after adding
+            clearForm();
+            showMessage('Decision added successfully!', 'success');
+        }
+
+        /**
+         * Clears all input fields in the form.
+         */
+        function clearForm() {
+            decisionTitleInput.value = '';
+            decisionDateInput.value = '';
+            prosInput.value = '';
+            consInput.value = '';
+            outcomeInput.value = '';
+            lessonsLearnedInput.value = '';
+            futureMessageInput.value = '';
+        }
+
+        /**
+         * Displays decisions from the provided array or the global 'decisions' array.
+         * @param {Array} [decisionsToDisplay=decisions] - The array of decisions to display. Defaults to the global 'decisions' array.
+         */
+        function displayDecisions(decisionsToDisplay = decisions) {
+            decisionsList.innerHTML = ''; // Clear existing decisions
+
+            if (decisionsToDisplay.length === 0) {
+                noDecisionsMessage.classList.remove('hidden');
+                return;
+            } else {
+                noDecisionsMessage.classList.add('hidden');
+            }
+
+            // Sort decisions by date, newest first
+            const sortedDecisions = [...decisionsToDisplay].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedDecisions.forEach(decision => {
+                const decisionCard = document.createElement('div');
+                decisionCard.id = `decision-${decision.id}`;
+                // Add the new 'decision-card' class for animations
+                decisionCard.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-md', 'border', 'border-gray-200', 'space-y-4', 'decision-card');
+
+                decisionCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-xl font-bold text-gray-900">${decision.title}</h3>
+                        <span class="text-sm text-gray-500">${decision.date}</span>
+                    </div>
+                    ${decision.pros ? `
+                        <div>
+                            <p class="font-semibold text-green-700">Pros:</p>
+                            <p class="text-gray-700 whitespace-pre-wrap">${decision.pros}</p>
+                        </div>` : ''}
+                    ${decision.cons ? `
+                        <div>
+                            <p class="font-semibold text-red-700">Cons:</p>
+                            <p class="text-gray-700 whitespace-pre-wrap">${decision.cons}</p>
+                        </div>` : ''}
+                    ${decision.outcome ? `
+                        <div>
+                            <p class="font-semibold text-purple-700">Outcome:</p>
+                            <p class="text-gray-700 whitespace-pre-wrap">${decision.outcome}</p>
+                        </div>` : ''}
+                    ${decision.lessons ? `
+                        <div>
+                            <p class="font-semibold text-yellow-700">Lessons Learned:</p>
+                            <p class="text-gray-700 whitespace-pre-wrap">${decision.lessons}</p>
+                        </div>` : ''}
+                    ${decision.futureMsg ? `
+                        <div class="bg-orange-50 p-4 rounded-md border border-orange-200"> <!-- Vibrant orange background -->
+                            <p class="font-semibold text-orange-700">Message to Future You:</p> <!-- Vibrant orange text -->
+                            <p class="text-gray-700 italic whitespace-pre-wrap">"${decision.futureMsg}"</p>
+                        </div>` : ''}
+                    <button class="delete-btn mt-4 btn btn-danger" data-id="${decision.id}">
+                        Delete Decision
+                    </button>
+                `;
+                decisionsList.appendChild(decisionCard);
+            });
+        }
+
+        /**
+         * Deletes a decision from the 'decisions' array based on its ID.
+         * @param {number} idToDelete - The ID of the decision to delete.
+         */
+        function deleteDecision(idToDelete) {
+            // Filter out the decision to be deleted
+            decisions = decisions.filter(decision => decision.id !== idToDelete);
+            saveDecisions(); // Save to localStorage
+            displayDecisions(); // Re-display all decisions after deletion
+            showMessage('Decision deleted successfully!', 'success');
+        }
+
+        /**
+         * Saves the current 'decisions' array to localStorage.
+         */
+        function saveDecisions() {
+            try {
+                localStorage.setItem('decisionTrackerData', JSON.stringify(decisions));
+            } catch (e) {
+                console.error("Error saving to localStorage:", e);
+                showMessage("Could not save decisions. Local storage might be full or unavailable.", "error");
+            }
+        }
+
+        /**
+         * Loads decisions from localStorage into the 'decisions' array.
+         */
+        function loadDecisions() {
+            try {
+                const storedDecisions = localStorage.getItem('decisionTrackerData');
+                if (storedDecisions) {
+                    decisions = JSON.parse(storedDecisions);
+                }
+            } catch (e) {
+                console.error("Error loading from localStorage:", e);
+                showMessage("Could not load previous decisions. Data might be corrupted.", "error");
+                decisions = []; // Reset to empty array if loading fails
+            }
+        }
+
+        /**
+         * Exports all recorded decisions to a Markdown file.
+         */
+        function exportToMarkdown() {
+            if (decisions.length === 0) {
+                showMessage('No decisions to export!', 'warning');
+                return;
+            }
+
+            let markdownContent = '';
+            decisions.forEach(decision => {
+                markdownContent += `# Decision Title: ${decision.title}\n`;
+                markdownContent += `**Date:** ${decision.date}\n\n`;
+                if (decision.pros) {
+                    markdownContent += `## Pros\n`;
+                    decision.pros.split('\n').forEach(item => {
+                        if (item.trim()) markdownContent += `- ${item.trim()}\n`;
+                    });
+                    markdownContent += '\n';
+                }
+                if (decision.cons) {
+                    markdownContent += `## Cons\n`;
+                    decision.cons.split('\n').forEach(item => {
+                        if (item.trim()) markdownContent += `- ${item.trim()}\n`;
+                    });
+                    markdownContent += '\n';
+                }
+                if (decision.outcome) {
+                    markdownContent += `## Outcome\n${decision.outcome}\n\n`;
+                }
+                if (decision.lessons) {
+                    markdownContent += `## Lessons Learned\n${decision.lessons}\n\n`;
+                }
+                if (decision.futureMsg) {
+                    markdownContent += `## Message to Future You\n${decision.futureMsg}\n\n`;
+                }
+                markdownContent += `---\n\n`; // Separator for decisions
+            });
+
+            const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'decision_tracker_export.md';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showMessage('Decisions exported to Markdown!', 'success');
+        }
+
+        /**
+         * Imports decisions from a Markdown file.
+         * Assumes a specific Markdown structure for parsing.
+         */
+        function importFromMarkdown(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const importedDecisions = parseMarkdownToDecisions(content);
+
+                if (importedDecisions.length > 0) {
+                    // Option to clear existing or merge. For simplicity, let's merge.
+                    // You could add a confirmation dialog here.
+                    decisions = [...decisions, ...importedDecisions];
+                    saveDecisions();
+                    displayDecisions();
+                    showMessage(`Successfully imported ${importedDecisions.length} decisions!`, 'success');
+                } else {
+                    showMessage('No valid decisions found in the Markdown file.', 'warning');
+                }
+            };
+            reader.onerror = () => {
+                showMessage('Error reading file.', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        /**
+         * Parses Markdown content into an array of decision objects.
+         * This is a simplified parser based on the export format.
+         * @param {string} markdownContent - The Markdown string to parse.
+         * @returns {Array} An array of decision objects.
+         */
+        function parseMarkdownToDecisions(markdownContent) {
+            const parsedDecisions = [];
+            // Split by the decision separator '---'
+            const rawDecisions = markdownContent.split('---\n').filter(block => block.trim() !== '');
+
+            rawDecisions.forEach(rawDecision => {
+                const decision = {
+                    id: Date.now() + Math.random(), // Generate a new unique ID
+                    title: '',
+                    date: '',
+                    pros: '',
+                    cons: '',
+                    outcome: '',
+                    lessons: '',
+                    futureMsg: ''
+                };
+
+                // Split into lines for easier parsing
+                const lines = rawDecision.split('\n').map(line => line.trim()).filter(line => line !== '');
+
+                let currentSection = '';
+                lines.forEach(line => {
+                    if (line.startsWith('# Decision Title:')) {
+                        decision.title = line.replace('# Decision Title:', '').trim();
+                    } else if (line.startsWith('**Date:**')) {
+                        decision.date = line.replace('**Date:**', '').trim();
+                    } else if (line === '## Pros') {
+                        currentSection = 'pros';
+                    } else if (line === '## Cons') {
+                        currentSection = 'cons';
+                    } else if (line === '## Outcome') {
+                        currentSection = 'outcome';
+                    } else if (line === '## Lessons Learned') {
+                        currentSection = 'lessons';
+                    } else if (line === '## Message to Future You') {
+                        currentSection = 'futureMsg';
+                    } else if (line.startsWith('- ') && (currentSection === 'pros' || currentSection === 'cons')) {
+                        decision[currentSection] += (decision[currentSection] ? '\n' : '') + line.substring(2).trim();
+                    } else if (currentSection && line) {
+                        decision[currentSection] += (decision[currentSection] ? '\n' : '') + line;
+                    }
+                });
+                parsedDecisions.push(decision);
+            });
+            return parsedDecisions;
+        }
+
+        /**
+         * Filters decisions based on search input and updates the display.
+         */
+        function filterDecisions() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                displayDecisions(); // Show all if search is empty
+                return;
+            }
+
+            const filtered = decisions.filter(decision => {
+                return (
+                    decision.title.toLowerCase().includes(searchTerm) ||
+                    decision.pros.toLowerCase().includes(searchTerm) ||
+                    decision.cons.toLowerCase().includes(searchTerm) ||
+                    decision.outcome.toLowerCase().includes(searchTerm) ||
+                    decision.lessons.toLowerCase().includes(searchTerm) ||
+                    decision.futureMsg.toLowerCase().includes(searchTerm)
+                );
+            });
+            displayDecisions(filtered);
+        }
+
+
+        // Event Listeners
+        addDecisionBtn.addEventListener('click', addDecision);
+        exportBtn.addEventListener('click', exportToMarkdown);
+        importBtn.addEventListener('click', () => importFileInput.click()); // Trigger file input click
+        importFileInput.addEventListener('change', importFromMarkdown);
+        searchInput.addEventListener('input', filterDecisions); // Live search
+
+
+        // Use event delegation for delete buttons
+        decisionsList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-btn')) {
+                const idToDelete = parseInt(event.target.dataset.id);
+                deleteDecision(idToDelete);
+            }
+        });
+
+        // Initial load: Load and display decisions when the page loads
+        window.onload = () => {
+            loadDecisions();
+            displayDecisions();
+            // Set today's date as default for the date input
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(today.getDate()).padStart(2, '0');
+            decisionDateInput.value = `${yyyy}-${mm}-${dd}`;
+        };
+    </script>
+</body>
+</html>

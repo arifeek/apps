@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fridge-to-Fork Meal Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .wizard-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .ingredients-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 60px;
+            padding: 10px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .ingredients-container.has-ingredients {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.05);
+        }
+
+        .ingredient-tag {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .remove-ingredient {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            font-size: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-surprise {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-surprise:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .results-section {
+            margin-top: 40px;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .recipe-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+        }
+
+        .recipe-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .recipe-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .recipe-body {
+            padding: 20px;
+        }
+
+        .recipe-description {
+            color: #4a5568;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .recipe-ingredients {
+            margin-bottom: 15px;
+        }
+
+        .view-recipe-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .view-recipe-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(72, 187, 120, 0.3);
+        }
+
+        .recipe-instructions {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .recipe-instructions.show {
+            display: block;
+        }
+
+        .recipe-instructions h4 {
+            color: #2d3748;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .instruction-step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .instruction-step-content {
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+
+        .recipe-ingredients h4 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ingredient-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .ingredient-item {
+            background: #f7fafc;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .music-pairing {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            margin: 15px -20px -20px -20px;
+            padding: 15px 20px;
+            color: #2d3748;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .music-pairing h4 {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .no-results h3 {
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .wizard-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .button-row {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .recipe-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍳 Fridge-to-Fork Meal Wizard</h1>
+            <p>Transform your ingredients into delicious meals • Reduce waste • Discover new flavors</p>
+        </div>
+
+        <div class="wizard-container">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="ingredientInput">What's in your fridge?</label>
+                    <input type="text" id="ingredientInput" placeholder="Type an ingredient and press Enter (e.g., chicken, tomatoes, pasta)">
+                    <div id="ingredientsContainer" class="ingredients-container">
+                        <span style="color: #a0aec0; font-style: italic;">Start typing ingredients...</span>
+                    </div>
+                </div>
+
+                <div class="filters-row">
+                    <div class="input-group">
+                        <label for="dietaryGoal">Dietary Goal</label>
+                        <select id="dietaryGoal">
+                            <option value="">Any</option>
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="vegan">Vegan</option>
+                            <option value="keto">Keto</option>
+                            <option value="low-carb">Low Carb</option>
+                            <option value="high-protein">High Protein</option>
+                            <option value="gluten-free">Gluten Free</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="prepTime">Max Prep Time</label>
+                        <select id="prepTime">
+                            <option value="">Any</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">1 hour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" id="findRecipesBtn">🔍 Find Recipes</button>
+                    <button class="btn btn-surprise" id="surpriseMeBtn">🎲 Surprise Me!</button>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="empty-state">
+                    <h3>Ready to cook something amazing?</h3>
+                    <p>Add some ingredients above and let's find the perfect recipe for you!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample recipe database
+        const recipes = [
+            {
+                title: "Creamy Chicken Pasta",
+                ingredients: ["chicken", "pasta", "cream", "garlic", "parmesan"],
+                dietaryGoal: "",
+                prepTime: 25,
+                description: "A rich and satisfying pasta dish with tender chicken in a creamy garlic sauce.",
+                instructions: [
+                    "Cook pasta according to package directions, reserve 1 cup pasta water",
+                    "Season chicken breasts and cook in olive oil until golden, about 6 minutes per side",
+                    "Remove chicken and slice, set aside",
+                    "In same pan, sauté minced garlic for 30 seconds",
+                    "Add cream and bring to gentle simmer",
+                    "Stir in grated parmesan and season with salt and pepper",
+                    "Add cooked pasta and chicken, toss with pasta water if needed",
+                    "Serve immediately with extra parmesan and fresh herbs"
+                ],
+                music: "Smooth Jazz - Perfect for a romantic dinner"
+            },
+            {
+                title: "Veggie Stir Fry",
+                ingredients: ["broccoli", "carrots", "soy sauce", "garlic", "ginger"],
+                dietaryGoal: "vegetarian",
+                prepTime: 15,
+                description: "Quick and healthy stir-fry packed with colorful vegetables and Asian flavors.",
+                instructions: [
+                    "Heat oil in a large wok or skillet over high heat",
+                    "Add minced garlic and ginger, stir-fry for 30 seconds",
+                    "Add carrots first, cook for 2 minutes",
+                    "Add broccoli florets, stir-fry for 3-4 minutes until bright green",
+                    "Pour in soy sauce and toss everything together",
+                    "Cook for another minute until vegetables are tender-crisp",
+                    "Serve over rice or enjoy as is"
+                ],
+                music: "Upbeat Pop - Energizing cooking vibes"
+            },
+            {
+                title: "Quinoa Buddha Bowl",
+                ingredients: ["quinoa", "avocado", "chickpeas", "spinach", "lemon"],
+                dietaryGoal: "vegan",
+                prepTime: 30,
+                description: "Nutritious bowl loaded with protein, healthy fats, and fresh greens.",
+                instructions: [
+                    "Rinse quinoa and cook in vegetable broth for 15 minutes",
+                    "Drain and rinse chickpeas, season with cumin and paprika",
+                    "Sauté chickpeas in olive oil until slightly crispy, about 5 minutes",
+                    "Wash and dry spinach leaves",
+                    "Make lemon dressing: whisk lemon juice, olive oil, salt, and pepper",
+                    "Slice avocado just before serving",
+                    "Assemble bowls: quinoa base, top with spinach, chickpeas, and avocado",
+                    "Drizzle with lemon dressing and enjoy"
+                ],
+                music: "Indie Folk - Wholesome and grounding"
+            },
+            {
+                title: "Keto Salmon with Asparagus",
+                ingredients: ["salmon", "asparagus", "butter", "lemon", "herbs"],
+                dietaryGoal: "keto",
+                prepTime: 20,
+                description: "Perfectly baked salmon with crispy asparagus, ideal for low-carb lifestyle.",
+                instructions: [
+                    "Preheat oven to 400°F (200°C)",
+                    "Trim asparagus ends and arrange on baking sheet",
+                    "Place salmon fillets on same sheet, season with salt and pepper",
+                    "Dot salmon and asparagus with butter pieces",
+                    "Sprinkle fresh herbs (dill, thyme, or parsley) over everything",
+                    "Bake for 12-15 minutes until salmon flakes easily",
+                    "Squeeze fresh lemon juice over everything before serving",
+                    "Serve immediately while hot"
+                ],
+                music: "Classical - Elegant dining experience"
+            },
+            {
+                title: "Protein Power Bowl",
+                ingredients: ["chicken", "eggs", "quinoa", "spinach", "avocado"],
+                dietaryGoal: "high-protein",
+                prepTime: 35,
+                description: "High-protein meal perfect for post-workout nutrition and muscle building.",
+                instructions: [
+                    "Cook quinoa in chicken broth for extra protein and flavor",
+                    "Season chicken breast and grill or pan-fry until cooked through",
+                    "Hard-boil eggs: 7 minutes in boiling water, then ice bath",
+                    "Sauté spinach with garlic until just wilted",
+                    "Let chicken rest, then slice into strips",
+                    "Peel and halve the hard-boiled eggs",
+                    "Slice avocado just before serving",
+                    "Assemble bowl: quinoa base, arrange chicken, eggs, spinach, and avocado",
+                    "Season with salt, pepper, and a drizzle of olive oil"
+                ],
+                music: "Electronic - Motivational workout recovery"
+            },
+            {
+                title: "Mediterranean Tomato Salad",
+                ingredients: ["tomatoes", "cucumber", "olives", "feta", "olive oil"],
+                dietaryGoal: "vegetarian",
+                prepTime: 10,
+                description: "Fresh and vibrant salad with authentic Mediterranean flavors.",
+                instructions: [
+                    "Cut tomatoes into wedges or thick slices",
+                    "Dice cucumber into bite-sized pieces",
+                    "Arrange tomatoes and cucumber on a platter",
+                    "Scatter kalamata olives over vegetables",
+                    "Crumble feta cheese generously on top",
+                    "Drizzle with good quality olive oil",
+                    "Season with salt, pepper, and dried oregano",
+                    "Let sit for 10 minutes to let flavors meld, then serve"
+                ],
+                music: "Mediterranean Instrumentals - Transport to the coast"
+            },
+            {
+                title: "Gluten-Free Chicken Curry",
+                ingredients: ["chicken", "coconut milk", "curry", "onion", "rice"],
+                dietaryGoal: "gluten-free",
+                prepTime: 40,
+                description: "Aromatic curry with tender chicken in a rich coconut sauce.",
+                instructions: [
+                    "Cut chicken into bite-sized pieces and season with salt",
+                    "Dice onion and sauté in oil until soft and translucent",
+                    "Add curry powder and cook for 1 minute until fragrant",
+                    "Add chicken pieces and brown on all sides",
+                    "Pour in coconut milk and bring to simmer",
+                    "Reduce heat and cook for 20 minutes until chicken is tender",
+                    "Meanwhile, cook jasmine rice according to package directions",
+                    "Taste curry and adjust seasoning with salt and more curry powder",
+                    "Serve curry over rice, garnish with fresh cilantro"
+                ],
+                music: "World Music - Exotic culinary journey"
+            },
+            {
+                title: "Avocado Toast Supreme",
+                ingredients: ["avocado", "bread", "eggs", "tomatoes", "lime"],
+                dietaryGoal: "",
+                prepTime: 12,
+                description: "Elevated avocado toast with perfectly poached eggs and fresh toppings.",
+                instructions: [
+                    "Toast bread slices until golden brown",
+                    "Bring water to gentle simmer in a wide pan",
+                    "Crack eggs into small bowls, then gently slide into simmering water",
+                    "Poach eggs for 3-4 minutes for runny yolks",
+                    "Meanwhile, mash avocado with lime juice, salt, and pepper",
+                    "Dice tomatoes and season with salt",
+                    "Spread avocado mixture on toast",
+                    "Top with diced tomatoes and carefully place poached egg on top",
+                    "Finish with cracked pepper and a pinch of sea salt"
+                ],
+                music: "Acoustic - Relaxed brunch atmosphere"
+            },
+            {
+                title: "Vegan Mushroom Risotto",
+                ingredients: ["mushrooms", "rice", "vegetable broth", "nutritional yeast", "onion"],
+                dietaryGoal: "vegan",
+                prepTime: 45,
+                description: "Creamy plant-based risotto with earthy mushrooms and umami flavors.",
+                instructions: [
+                    "Heat vegetable broth in a separate pot and keep warm",
+                    "Slice mushrooms and sauté until golden brown, set aside",
+                    "Dice onion finely and sauté in olive oil until soft",
+                    "Add arborio rice and stir for 2 minutes to coat with oil",
+                    "Add warm broth one ladle at a time, stirring constantly",
+                    "Continue adding broth and stirring for 20-25 minutes",
+                    "Stir in sautéed mushrooms and nutritional yeast",
+                    "Season with salt, pepper, and fresh herbs",
+                    "Serve immediately while creamy and hot"
+                ],
+                music: "Ambient - Meditative cooking process"
+            },
+            {
+                title: "Low-Carb Zucchini Noodles",
+                ingredients: ["zucchini", "pesto", "cherry tomatoes", "parmesan", "pine nuts"],
+                dietaryGoal: "low-carb",
+                prepTime: 18,
+                description: "Light and fresh 'pasta' alternative with vibrant pesto and tomatoes.",
+                instructions: [
+                    "Spiralize zucchini into noodle shapes using a spiralizer or julienne peeler",
+                    "Salt zucchini noodles and let drain in colander for 10 minutes",
+                    "Halve cherry tomatoes",
+                    "Toast pine nuts in dry pan until lightly golden",
+                    "Pat zucchini noodles dry with paper towels",
+                    "Quickly sauté zucchini noodles for 1-2 minutes, don't overcook",
+                    "Remove from heat and toss with pesto",
+                    "Add cherry tomatoes and toss gently",
+                    "Serve topped with parmesan and toasted pine nuts"
+                ],
+                music: "Italian Pop - Mediterranean dining mood"
+            }
+        ];
+
+        let ingredients = [];
+
+        // DOM elements
+        const ingredientInput = document.getElementById('ingredientInput');
+        const ingredientsContainer = document.getElementById('ingredientsContainer');
+        const findRecipesBtn = document.getElementById('findRecipesBtn');
+        const surpriseMeBtn = document.getElementById('surpriseMeBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const dietaryGoal = document.getElementById('dietaryGoal');
+        const prepTime = document.getElementById('prepTime');
+
+        // Add ingredient on Enter key
+        ingredientInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                addIngredient(this.value.trim().toLowerCase());
+                this.value = '';
+            }
+        });
+
+        function addIngredient(ingredient) {
+            if (!ingredients.includes(ingredient)) {
+                ingredients.push(ingredient);
+                updateIngredientsDisplay();
+            }
+        }
+
+        function removeIngredient(ingredient) {
+            ingredients = ingredients.filter(item => item !== ingredient);
+            updateIngredientsDisplay();
+        }
+
+        function updateIngredientsDisplay() {
+            if (ingredients.length === 0) {
+                ingredientsContainer.innerHTML = '<span style="color: #a0aec0; font-style: italic;">Start typing ingredients...</span>';
+                ingredientsContainer.classList.remove('has-ingredients');
+            } else {
+                ingredientsContainer.classList.add('has-ingredients');
+                ingredientsContainer.innerHTML = ingredients.map(ingredient => 
+                    `<span class="ingredient-tag">
+                        ${ingredient}
+                        <button class="remove-ingredient" onclick="removeIngredient('${ingredient}')">×</button>
+                    </span>`
+                ).join('');
+            }
+        }
+
+        function findRecipes() {
+            if (ingredients.length === 0) {
+                resultsSection.innerHTML = `
+                    <div class="no-results">
+                        <h3>🥘 Add some ingredients first!</h3>
+                        <p>Tell us what's in your fridge to get personalized recipe suggestions.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            showLoading();
+            
+            setTimeout(() => {
+                // Score recipes based on how many ingredients match
+                const scoredRecipes = recipes.map(recipe => {
+                    const matchedIngredients = recipe.ingredients.filter(recipeIng => 
+                        ingredients.some(userIng => 
+                            recipeIng.toLowerCase().includes(userIng.toLowerCase()) || 
+                            userIng.toLowerCase().includes(recipeIng.toLowerCase())
+                        )
+                    );
+                    
+                    const matchPercentage = matchedIngredients.length / recipe.ingredients.length;
+                    const hasMainIngredient = matchedIngredients.length > 0;
+                    
+                    return {
+                        ...recipe,
+                        matchedIngredients,
+                        matchPercentage,
+                        hasMainIngredient,
+                        missingIngredients: recipe.ingredients.filter(ing => !matchedIngredients.includes(ing))
+                    };
+                });
+
+                // Filter and sort recipes
+                let filteredRecipes = scoredRecipes.filter(recipe => {
+                    // Must have at least one matching ingredient
+                    const hasIngredientMatch = recipe.hasMainIngredient;
+                    
+                    // Check dietary goal
+                    const matchesDiet = !dietaryGoal.value || recipe.dietaryGoal === dietaryGoal.value;
+                    
+                    // Check prep time
+                    const matchesTime = !prepTime.value || recipe.prepTime <= parseInt(prepTime.value);
+                    
+                    return hasIngredientMatch && matchesDiet && matchesTime;
+                });
+
+                // Sort by match percentage (best matches first)
+                filteredRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+                displayRecipes(filteredRecipes);
+            }, 1000);
+        }
+
+        function surpriseMe() {
+            showLoading();
+            
+            setTimeout(() => {
+                // Get random recipes regardless of ingredients
+                const shuffled = [...recipes].sort(() => 0.5 - Math.random());
+                const surpriseRecipes = shuffled.slice(0, 3);
+                displayRecipes(surpriseRecipes, true);
+            }, 1000);
+        }
+
+        function showLoading() {
+            resultsSection.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Finding perfect recipes for you...</p>
+                </div>
+            `;
+        }
+
+        function displayRecipes(recipeList, isSurprise = false) {
+            if (recipeList.length === 0) {
+                resultsSection.innerHTML = `
+                    <div class="no-results">
+                        <h3>No matching recipes found</h3>
+                        <p>Try adding different ingredients or adjusting your filters. We need at least one ingredient match!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const title = isSurprise ? "🎲 Surprise Recipes Just for You!" : `🍽️ Found ${recipeList.length} Recipe${recipeList.length > 1 ? 's' : ''} Using Your Ingredients`;
+            
+            resultsSection.innerHTML = `
+                <h2 style="margin-bottom: 20px; color: #2d3748;">${title}</h2>
+                <div class="recipe-grid">
+                    ${recipeList.map(recipe => {
+                        const matchPercentage = Math.round((recipe.matchPercentage || 0) * 100);
+                        const hasMatchData = recipe.matchedIngredients !== undefined;
+                        
+                        return `
+                        <div class="recipe-card">
+                            <div class="recipe-header">
+                                <div class="recipe-title">${recipe.title}</div>
+                                <div class="recipe-meta">
+                                    <span>⏱️ ${recipe.prepTime} min</span>
+                                    <span>${recipe.dietaryGoal ? `🥗 ${recipe.dietaryGoal}` : '🍽️ Any diet'}</span>
+                                    ${hasMatchData ? `<span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px;">✅ ${matchPercentage}% match</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="recipe-body">
+                                <div class="recipe-description">${recipe.description}</div>
+                                
+                                ${hasMatchData && recipe.matchedIngredients.length > 0 ? `
+                                    <div class="recipe-ingredients" style="margin-bottom: 10px;">
+                                        <h4 style="color: #22543d;">✅ You Have These (${recipe.matchedIngredients.length})</h4>
+                                        <div class="ingredient-list">
+                                            ${recipe.matchedIngredients.map(ing => 
+                                                `<span class="ingredient-item" style="background: #c6f6d5; color: #22543d; border-color: #48bb78;">${ing}</span>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${hasMatchData && recipe.missingIngredients.length > 0 ? `
+                                    <div class="recipe-ingredients">
+                                        <h4 style="color: #c53030;">🛒 You'll Need (${recipe.missingIngredients.length})</h4>
+                                        <div class="ingredient-list">
+                                            ${recipe.missingIngredients.map(ing => 
+                                                `<span class="ingredient-item" style="background: #fed7d7; color: #c53030; border-color: #fc8181;">${ing}</span>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div class="recipe-ingredients">
+                                        <h4>All Ingredients</h4>
+                                        <div class="ingredient-list">
+                                            ${recipe.ingredients.map(ing => 
+                                                `<span class="ingredient-item ${ingredients.includes(ing) ? 'style="background: #c6f6d5; color: #22543d;"' : ''}">${ing}</span>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                `}
+                                
+                                <button class="view-recipe-btn" onclick="toggleRecipe('${recipe.title.replace(/'/g, "\\'")}')">
+                                    👨‍🍳 View Recipe Instructions
+                                </button>
+                                <div class="recipe-instructions" id="instructions-${recipe.title.replace(/\s+/g, '-').toLowerCase()}">
+                                    <h4>🍳 Cooking Instructions</h4>
+                                    ${recipe.instructions.map((step, index) => `
+                                        <div class="instruction-step">
+                                            <div class="instruction-step-content">
+                                                <span class="step-number">${index + 1}</span>
+                                                <span>${step}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${isSurprise ? `
+                                    <div class="music-pairing">
+                                        <h4>🎵 Cooking Soundtrack</h4>
+                                        <p>${recipe.music}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
+            `;
+        }
+
+        // Event listeners
+        findRecipesBtn.addEventListener('click', findRecipes);
+        surpriseMeBtn.addEventListener('click', surpriseMe);
+
+        // Toggle recipe instructions
+        function toggleRecipe(recipeTitle) {
+            const instructionsId = 'instructions-' + recipeTitle.replace(/\s+/g, '-').toLowerCase();
+            const instructionsElement = document.getElementById(instructionsId);
+            const button = event.target;
+            
+            if (instructionsElement.classList.contains('show')) {
+                instructionsElement.classList.remove('show');
+                button.textContent = '👨‍🍳 View Recipe Instructions';
+                button.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+            } else {
+                instructionsElement.classList.add('show');
+                button.textContent = '🔼 Hide Instructions';
+                button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
+
+        // Initialize
+        updateIngredientsDisplay();
+    </script>
+</body>
+</html>

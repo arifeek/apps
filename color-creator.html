@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Linear Gradient Creator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        
+        .gradient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .gradient-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .gradient-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .gradient-preview {
+            height: 200px;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+        
+        .gradient-controls {
+            padding: 20px;
+            background: white;
+        }
+        
+        .gradient-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .color-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-input {
+            width: 50px;
+            height: 30px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            background: none;
+            outline: none;
+        }
+        
+        .color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        
+        .color-input::-webkit-color-swatch {
+            border: none;
+            border-radius: 3px;
+        }
+        
+        .color-input::-moz-color-swatch {
+            border: none;
+            border-radius: 3px;
+        }
+        
+        .color-label {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 60px;
+        }
+        
+        .direction-control {
+            margin-bottom: 15px;
+        }
+        
+        .direction-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .direction-control input {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .gradient-code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+            word-break: break-all;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .gradient-code:hover {
+            background: #e9ecef;
+        }
+        
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .copy-notification.show {
+            opacity: 1;
+        }
+        
+        .category {
+            margin-bottom: 50px;
+        }
+        
+        .category-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .direction-display {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        
+        .reset-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Linear Gradient Creator</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 40px;">
+            Customize colors and directions, then click the code to copy!
+        </p>
+        
+        <div class="category">
+            <div class="category-title">🌅 Nature Inspired</div>
+            <div class="gradient-grid">
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="sunset"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Sunset</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#ff6b6b" data-target="sunset" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#ffa726" data-target="sunset" data-index="1">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 3:</span>
+                                <input type="color" class="color-input" value="#ff8a65" data-target="sunset" data-index="2">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">135deg</span></label>
+                            <input type="range" min="0" max="360" value="135" data-target="sunset" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="sunset"></div>
+                        <button class="reset-btn" onclick="resetGradient('sunset')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="ocean"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Ocean Depths</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#667eea" data-target="ocean" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#764ba2" data-target="ocean" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="ocean" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="ocean"></div>
+                        <button class="reset-btn" onclick="resetGradient('ocean')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="forest"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Forest Breeze</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#56ab2f" data-target="forest" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#a8e6cf" data-target="forest" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">135deg</span></label>
+                            <input type="range" min="0" max="360" value="135" data-target="forest" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="forest"></div>
+                        <button class="reset-btn" onclick="resetGradient('forest')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="northern-lights"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Northern Lights</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#00f260" data-target="northern-lights" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#0575e6" data-target="northern-lights" data-index="1">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 3:</span>
+                                <input type="color" class="color-input" value="#00f260" data-target="northern-lights" data-index="2">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="northern-lights" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="northern-lights"></div>
+                        <button class="reset-btn" onclick="resetGradient('northern-lights')">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title">🎨 Vibrant & Bold</div>
+            <div class="gradient-grid">
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="miami"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Miami Vice</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#4facfe" data-target="miami" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#00f2fe" data-target="miami" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="miami" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="miami"></div>
+                        <button class="reset-btn" onclick="resetGradient('miami')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="neon"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Neon Nights</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#ff006e" data-target="neon" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#8338ec" data-target="neon" data-index="1">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 3:</span>
+                                <input type="color" class="color-input" value="#3a86ff" data-target="neon" data-index="2">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="neon" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="neon"></div>
+                        <button class="reset-btn" onclick="resetGradient('neon')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="magma"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Magma Flow</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#f12711" data-target="magma" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#f5af19" data-target="magma" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="magma" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="magma"></div>
+                        <button class="reset-btn" onclick="resetGradient('magma')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="cherry"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Cherry Bomb</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#eb3349" data-target="cherry" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#f45c43" data-target="cherry" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="cherry" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="cherry"></div>
+                        <button class="reset-btn" onclick="resetGradient('cherry')">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title">🌸 Soft & Elegant</div>
+            <div class="gradient-grid">
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="peach"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Peach Fuzz</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#ffecd2" data-target="peach" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#fcb69f" data-target="peach" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="peach" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="peach"></div>
+                        <button class="reset-btn" onclick="resetGradient('peach')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="cotton-candy"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Cotton Candy</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#fbc2eb" data-target="cotton-candy" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#a6c1ee" data-target="cotton-candy" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="cotton-candy" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="cotton-candy"></div>
+                        <button class="reset-btn" onclick="resetGradient('cotton-candy')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="rose-gold"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Rose Gold</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#f953c6" data-target="rose-gold" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#b91d73" data-target="rose-gold" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="rose-gold" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="rose-gold"></div>
+                        <button class="reset-btn" onclick="resetGradient('rose-gold')">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="gradient-card">
+                    <div class="gradient-preview" id="mint"></div>
+                    <div class="gradient-controls">
+                        <div class="gradient-name">Mint Cream</div>
+                        <div class="color-controls">
+                            <div class="color-input-group">
+                                <span class="color-label">Color 1:</span>
+                                <input type="color" class="color-input" value="#a8edea" data-target="mint" data-index="0">
+                            </div>
+                            <div class="color-input-group">
+                                <span class="color-label">Color 2:</span>
+                                <input type="color" class="color-input" value="#fed6e3" data-target="mint" data-index="1">
+                            </div>
+                        </div>
+                        <div class="direction-control">
+                            <label>Direction: <span class="direction-display">45deg</span></label>
+                            <input type="range" min="0" max="360" value="45" data-target="mint" class="direction-slider">
+                        </div>
+                        <div class="gradient-code" data-target="mint"></div>
+                        <button class="reset-btn" onclick="resetGradient('mint')">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="copy-notification" id="copyNotification">
+        Copied to clipboard!
+    </div>
+
+    <script>
+        // Store original gradient configurations
+        const originalGradients = {
+            'sunset': { colors: ['#ff6b6b', '#ffa726', '#ff8a65'], direction: 135 },
+            'ocean': { colors: ['#667eea', '#764ba2'], direction: 45 },
+            'forest': { colors: ['#56ab2f', '#a8e6cf'], direction: 135 },
+            'northern-lights': { colors: ['#00f260', '#0575e6', '#00f260'], direction: 45 },
+            'miami': { colors: ['#4facfe', '#00f2fe'], direction: 45 },
+            'neon': { colors: ['#ff006e', '#8338ec', '#3a86ff'], direction: 45 },
+            'magma': { colors: ['#f12711', '#f5af19'], direction: 45 },
+            'cherry': { colors: ['#eb3349', '#f45c43'], direction: 45 },
+            'peach': { colors: ['#ffecd2', '#fcb69f'], direction: 45 },
+            'cotton-candy': { colors: ['#fbc2eb', '#a6c1ee'], direction: 45 },
+            'rose-gold': { colors: ['#f953c6', '#b91d73'], direction: 45 },
+            'mint': { colors: ['#a8edea', '#fed6e3'], direction: 45 }
+        };
+
+        // Store current gradient states
+        const currentGradients = JSON.parse(JSON.stringify(originalGradients));
+
+        function updateGradient(targetId) {
+            try {
+                const gradient = currentGradients[targetId];
+                if (!gradient || !gradient.colors) return;
+                
+                const colors = gradient.colors.join(', ');
+                const css = `linear-gradient(${gradient.direction}deg, ${colors})`;
+                
+                // Update preview
+                const previewElement = document.getElementById(targetId);
+                if (previewElement) {
+                    previewElement.style.background = css;
+                }
+                
+                // Update code display
+                const codeElement = document.querySelector(`[data-target="${targetId}"].gradient-code`);
+                if (codeElement) {
+                    codeElement.textContent = css;
+                }
+                
+                // Update direction display
+                const directionDisplay = document.querySelector(`[data-target="${targetId}"] .direction-display`);
+                if (directionDisplay) {
+                    directionDisplay.textContent = `${gradient.direction}deg`;
+                }
+            } catch (error) {
+                console.log('Update gradient error:', error);
+            }
+        }
+
+        function resetGradient(targetId) {
+            try {
+                const original = originalGradients[targetId];
+                if (!original) return;
+                
+                currentGradients[targetId] = JSON.parse(JSON.stringify(original));
+                
+                // Reset color inputs
+                const colorInputs = document.querySelectorAll(`[data-target="${targetId}"].color-input`);
+                colorInputs.forEach((input, index) => {
+                    if (original.colors[index]) {
+                        input.value = original.colors[index];
+                    }
+                });
+                
+                // Reset direction slider
+                const directionSlider = document.querySelector(`[data-target="${targetId}"].direction-slider`);
+                if (directionSlider) {
+                    directionSlider.value = original.direction;
+                }
+                
+                updateGradient(targetId);
+            } catch (error) {
+                console.log('Reset gradient error:', error);
+            }
+        }
+
+        // Event listeners for color inputs
+        document.querySelectorAll('.color-input').forEach(input => {
+            input.addEventListener('input', function() {
+                try {
+                    const targetId = this.dataset.target;
+                    const colorIndex = parseInt(this.dataset.index);
+                    if (currentGradients[targetId] && currentGradients[targetId].colors) {
+                        currentGradients[targetId].colors[colorIndex] = this.value;
+                        updateGradient(targetId);
+                    }
+                } catch (error) {
+                    console.log('Color input error:', error);
+                }
+            });
+        });
+
+        // Event listeners for direction sliders
+        document.querySelectorAll('.direction-slider').forEach(slider => {
+            slider.addEventListener('input', function() {
+                try {
+                    const targetId = this.dataset.target;
+                    if (currentGradients[targetId]) {
+                        currentGradients[targetId].direction = parseInt(this.value);
+                        updateGradient(targetId);
+                    }
+                } catch (error) {
+                    console.log('Direction slider error:', error);
+                }
+            });
+        });
+
+        // Copy to clipboard functionality
+        document.querySelectorAll('.gradient-code').forEach(codeElement => {
+            codeElement.addEventListener('click', function() {
+                const text = this.textContent;
+                
+                // Fallback for older browsers or when clipboard API is not available
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showCopyNotification();
+                    }).catch(() => {
+                        fallbackCopyTextToClipboard(text);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(text);
+                }
+            });
+        });
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.top = "-1000px";
+            textArea.style.left = "-1000px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyNotification();
+            } catch (err) {
+                console.log('Copy failed');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize all gradients
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                Object.keys(currentGradients).forEach(targetId => {
+                    updateGradient(targetId);
+                });
+            } catch (error) {
+                console.log('Initialization error:', error);
+            }
+        });
+        
+        // Fallback initialization if DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            // Document is still loading
+        } else {
+            // Document is already loaded
+            try {
+                Object.keys(currentGradients).forEach(targetId => {
+                    updateGradient(targetId);
+                });
+            } catch (error) {
+                console.log('Fallback initialization error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

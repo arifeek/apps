@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Weekly Life Planner</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f8ff; /* AliceBlue */
+      margin: 0;
+      padding: 0;
+      color: #333;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: linear-gradient(45deg, #f953c6, #b91d73);
+      color: white;
+      padding: 1.2rem;
+      text-align: center;
+      font-size: 1.3rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .week-range {
+      text-align: center;
+      padding: 0.5rem 1rem;
+      background: #fdfdff; /* Slightly different background */
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+      color: #666;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .day-selector {
+      display: flex;
+      overflow-x: auto;
+      background: #ffffff;
+      padding: 0.75rem 0.5rem;
+      -webkit-overflow-scrolling: touch;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-radius: 0 0 15px 15px;
+      margin-bottom: 1.2rem;
+      justify-content: space-between;
+    }
+
+    .day-selector button {
+      flex: 1;
+      min-width: 75px;
+      padding: 0.8rem 0.5rem;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 1.05rem;
+      cursor: pointer;
+      color: #555;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      border-radius: 12px;
+      margin: 0 5px;
+      flex-shrink: 0;
+      display: flex; /* Allow vertical stacking */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2; /* Tighter line height for date */
+    }
+
+    .day-selector button .day-name {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    .day-selector button .day-date {
+        font-size: 0.75em; /* Smaller font for date */
+        color: #888;
+    }
+
+    .day-selector button.active {
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      color: white;
+      box-shadow: 0 5px 10px rgba(255, 69, 0, 0.3);
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .day-selector button.active .day-date {
+        color: rgba(255, 255, 255, 0.8); /* Lighter date color for active state */
+    }
+
+    .day-selector button:not(.active):hover {
+      background: #ffe0e0;
+    }
+
+    .planner {
+      padding: 1rem;
+    }
+
+    .category {
+      background: #ffffff;
+      margin-bottom: 1.5rem;
+      padding: 1.2rem;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      border: 1px solid #f0f0f0;
+    }
+
+    .category h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.3rem;
+      color: #4682b4; /* SteelBlue */
+      text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    }
+
+    .category textarea {
+      width: calc(100% - 20px);
+      height: 90px;
+      font-size: 1.05rem;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      resize: vertical;
+      background: #fdfdfd;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.07);
+      -webkit-appearance: none;
+      appearance: none; /* Standard property for compatibility */
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      padding: 1rem;
+      gap: 10px; /* Space between buttons */
+      margin-top: 1rem; /* Space above buttons */
+    }
+
+    .action-buttons button,
+    .action-buttons input[type="file"] {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .action-buttons button {
+      background: #4CAF50; /* Green for export */
+      color: white;
+    }
+
+    .action-buttons button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+
+    .action-buttons #importFile {
+        display: none; /* Hide the default file input */
+    }
+
+    .action-buttons .import-label {
+        background: #2196F3; /* Blue for import */
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .action-buttons .import-label:hover {
+        background: #1e88e5;
+        transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MWeekly Planner</h1>
+</header>
+
+<div class="week-range" id="weekRangeDisplay"></div>
+
+<div class="day-selector" id="daySelector">
+  </div>
+
+<div class="planner" id="plannerContainer"></div>
+
+<div class="action-buttons">
+  <button onclick="return exportToMarkdown()">Export to Markdown</button>
+  <label for="importFile" class="import-label">Import from Markdown</label>
+  <input type="file" id="importFile" accept=".md" onchange="importFromMarkdown(event)">
+</div>
+
+<script>
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Used for Date object's getDay()
+  const plannerDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // Our display order
+  const categories = ["To-Do", "Meals", "Exercise", "Events", "Mood"];
+  const STORAGE_KEY = "weeklyLifePlannerData";
+  let currentDayIndex = 0; // 0 for Mon, 6 for Sun
+
+  let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // --- Date Calculation and Display ---
+  let weekDates = []; // Stores Date objects for the current week
+
+  function getMondayOfCurrentWeek(d) {
+      d = new Date(d);
+      const day = d.getDay(); // 0 for Sunday, 1 for Monday
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday (0)
+      return new Date(d.setDate(diff));
+  }
+
+  function formatDisplayDate(date) {
+      const options = { month: 'short', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+  }
+
+  function formatFullDate(date) {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+  }
+
+  function initializeWeekDates() {
+      const today = new Date();
+      const monday = getMondayOfCurrentWeek(today);
+      weekDates = [];
+      for (let i = 0; i < 7; i++) {
+          const date = new Date(monday);
+          date.setDate(monday.getDate() + i);
+          weekDates.push(date);
+      }
+      displayWeekRange();
+      populateDaySelectorButtons();
+  }
+
+  function displayWeekRange() {
+      const displayElement = document.getElementById('weekRangeDisplay');
+      if (weekDates.length === 7) {
+          const firstDay = weekDates[0];
+          const lastDay = weekDates[6];
+          const options = { day: 'numeric', month: 'short', year: 'numeric' };
+          const rangeText = `${plannerDays[0]} ${firstDay.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${plannerDays[6]} ${lastDay.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+          displayElement.textContent = rangeText;
+      }
+  }
+
+  function populateDaySelectorButtons() {
+    const daySelector = document.getElementById('daySelector');
+    daySelector.innerHTML = ''; // Clear existing buttons
+    plannerDays.forEach((dayName, index) => {
+      const button = document.createElement('button');
+      button.onclick = () => switchDay(index);
+      button.innerHTML = `<span class="day-name">${dayName}</span><span class="day-date">${formatDisplayDate(weekDates[index])}</span>`;
+      daySelector.appendChild(button);
+    });
+  }
+
+  function switchDay(index) {
+    currentDayIndex = index;
+    localStorage.setItem("currentDayIndex", currentDayIndex);
+
+    // Update active class on dynamically created buttons
+    document.querySelectorAll('.day-selector button').forEach((btn, idx) => {
+        if (idx === index) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    renderPlanner(index);
+  }
+
+  function renderPlanner(dayIndex) {
+    const container = document.getElementById("plannerContainer");
+    const dayKey = plannerDays[dayIndex];
+    if (!data[dayKey]) data[dayKey] = {}; // Ensure data structure for the day
+
+    // Get the specific date for the current day being rendered
+    const fullDate = weekDates[dayIndex] ? formatFullDate(weekDates[dayIndex]) : '';
+
+    container.innerHTML = ""; // Clear previous day's content
+
+    categories.forEach(cat => {
+      const val = data[dayKey][cat] || "";
+      const wrapper = document.createElement("div");
+      wrapper.className = "category";
+
+      const label = document.createElement("h3");
+      label.textContent = cat;
+      wrapper.appendChild(label);
+
+      const textarea = document.createElement("textarea");
+      textarea.value = val;
+      textarea.placeholder = `Add your ${cat.toLowerCase()} for ${dayKey} (${fullDate})...`;
+      textarea.oninput = () => {
+        data[dayKey][cat] = textarea.value;
+        saveData();
+      };
+      wrapper.appendChild(textarea);
+
+      container.appendChild(wrapper);
+    });
+  }
+
+  // Modified exportToMarkdown function for iOS compatibility
+  // Modified exportToMarkdown function for iOS compatibility
+  function exportToMarkdown() {
+    let markdownContent = `# Weekly Life Planner Data\n\n`;
+
+    plannerDays.forEach((dayKey, index) => {
+      const fullDate = weekDates[index] ? formatFullDate(weekDates[index]) : '';
+      if (data[dayKey]) {
+        markdownContent += `## ${dayKey} (${fullDate})\n`; // Export with full date
+        categories.forEach(cat => {
+          if (data[dayKey][cat]) {
+            markdownContent += `### ${cat}\n`;
+            const contentLines = data[dayKey][cat].split('\n').filter(line => line.trim() !== '');
+            if (['To-Do', 'Meals', 'Exercise', 'Events'].includes(cat)) {
+                contentLines.forEach(line => {
+                    markdownContent += `- ${line.trim()}\n`;
+                });
+            } else {
+                markdownContent += `${data[dayKey][cat].trim()}\n`;
+            }
+            markdownContent += `\n`;
+          }
+        });
+        markdownContent += `\n`;
+      }
+    });
+
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const filename = `weekly_planner_${formatDisplayDate(weekDates[0])}_to_${formatDisplayDate(weekDates[6])}.md`;
+
+    // **Alternative strategy for iOS: Create and directly navigate/assign**
+    // This often works better than appending to DOM and then click()
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename; // This is the download attribute
+    link.target = '_blank'; // Often helps iOS handle it as a file
+    link.style.display = 'none'; // Keep it hidden if not for direct user interaction
+
+    // This part is tricky. A direct `window.location.href = url` or `window.open(url)`
+    // might also work, but `link.download` is key for getting the filename.
+    // The safest way is usually to directly append to the body and click, but sometimes
+    // a very brief appearance helps iOS register it.
+
+    document.body.appendChild(link);
+    link.click(); // Still try programmatic click, but the directness sometimes helps
+    document.body.removeChild(link); // Clean up immediately
+
+    // Revoke URL after a short delay to allow download to initiate
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    return false; // Prevent default button action
+  }
+
+
+  function importFromMarkdown(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      parseMarkdownToData(content);
+      saveData();
+      renderPlanner(currentDayIndex);
+      alert('Planner data imported successfully!');
+    };
+    reader.readAsText(file);
+  }
+
+  function parseMarkdownToData(markdownContent) {
+    const newData = {};
+    let currentDay = null;
+    let currentCategory = null;
+
+    const lines = markdownContent.split('\n');
+    lines.forEach(line => {
+      line = line.trim();
+
+      const dayMatch = line.match(/^##\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?:\s+\(.+\))?$/i);
+      if (dayMatch) {
+        currentDay = dayMatch[1];
+        newData[currentDay] = newData[currentDay] || {};
+        currentCategory = null;
+        return;
+      }
+
+      const categoryMatch = line.match(/^###\s*(To-Do|Meals|Exercise|Events|Mood)$/i);
+      if (categoryMatch && currentDay) {
+        currentCategory = categoryMatch[1];
+        newData[currentDay][currentCategory] = '';
+        return;
+      }
+
+      if (currentDay && currentCategory) {
+        if (line.startsWith('- ')) {
+          const listItemContent = line.substring(2).trim();
+          if (newData[currentDay][currentCategory]) {
+              newData[currentDay][currentCategory] += '\n';
+          }
+          newData[currentDay][currentCategory] += listItemContent;
+        } else if (line !== '' && !line.startsWith('#')) {
+          if (newData[currentDay][currentCategory]) {
+              newData[currentDay][currentCategory] += '\n';
+          }
+          newData[currentDay][currentCategory] += line;
+        }
+      }
+    });
+    data = newData;
+  }
+
+  // --- Initialization ---
+  initializeWeekDates();
+
+  const savedDayIndex = localStorage.getItem("currentDayIndex");
+  if (savedDayIndex !== null) {
+      currentDayIndex = parseInt(savedDayIndex);
+  }
+  switchDay(currentDayIndex);
+
+</script>
+
+</body>
+</html>
