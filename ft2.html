@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fasting Stages Timeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .time-input {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .time-input label {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .time-input input {
+            padding: 8px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .time-input input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .current-status {
+            text-align: center;
+            color: white;
+        }
+        
+        .current-time {
+            font-size: 2.5rem;
+            font-weight: 200;
+            margin-bottom: 5px;
+            color: #ffd700;
+        }
+        
+        .elapsed-time {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        .timeline {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        
+        .timeline-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .timeline-header h2 {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-subtitle {
+            color: #718096;
+            font-size: 1rem;
+        }
+        
+        .stages-container {
+            position: relative;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #e2e8f0, #cbd5e0);
+            border-radius: 2px;
+        }
+        
+        .progress-line {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            border-radius: 2px;
+            transition: height 1s ease-out;
+        }
+        
+        .stage {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 90px;
+            opacity: 0.4;
+            transition: all 0.5s ease;
+        }
+        
+        .stage.active {
+            opacity: 1;
+        }
+        
+        .stage.completed {
+            opacity: 0.7;
+        }
+        
+        .stage-marker {
+            position: absolute;
+            left: 42px;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .stage.completed .stage-marker {
+            background: #48bb78;
+            box-shadow: 0 0 20px rgba(72, 187, 120, 0.4);
+        }
+        
+        .stage.active .stage-marker {
+            background: #667eea;
+            box-shadow: 0 0 25px rgba(102, 126, 234, 0.6);
+            animation: pulse-marker 2s infinite;
+        }
+        
+        .stage-header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--stage-color, #e2e8f0);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stage.active .stage-header {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border-left-color: #667eea;
+        }
+        
+        .stage-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stage-header-left {
+            flex: 1;
+        }
+        
+        .stage-time {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stage-duration {
+            font-size: 0.9rem;
+            color: #718096;
+            background: #f7fafc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .stage-start-time {
+            font-size: 0.85rem;
+            color: #4a5568;
+            background: #edf2f7;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: 500;
+        }
+        
+        .stage.active .stage-duration {
+            background: #667eea;
+            color: white;
+        }
+        
+        .stage.active .stage-start-time {
+            background: #e6fffa;
+            color: #285e61;
+        }
+        
+        .stage-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .stage-toggle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5568;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+        
+        .stage.active .stage-toggle {
+            background: #e6fffa;
+            color: #285e61;
+        }
+        
+        .stage-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .stage-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+            margin-top: 10px;
+            border-radius: 0 15px 15px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stage-content.expanded {
+            max-height: 500px;
+        }
+        
+        .stage-content-inner {
+            padding: 20px 25px;
+            border-left: 4px solid var(--stage-color, #e2e8f0);
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .stage.active .stage-content-inner {
+            border-left-color: #667eea;
+        }
+        
+        .stage-description {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .stage-benefits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .benefit-tag {
+            background: #f0f4f8;
+            color: #2d3748;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .stage.active .benefit-tag {
+            background: #e6fffa;
+            color: #285e61;
+        }
+        
+        .current-indicator {
+            position: absolute;
+            left: 35px;
+            width: 30px;
+            height: 30px;
+            background: #ff4757;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
+            z-index: 3;
+            transition: top 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .current-indicator::after {
+            content: 'NOW';
+        }
+        
+        @keyframes pulse-marker {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Stage colors */
+        .stage:nth-child(1) { --stage-color: #667eea; }
+        .stage:nth-child(2) { --stage-color: #f093fb; }
+        .stage:nth-child(3) { --stage-color: #4facfe; }
+        .stage:nth-child(4) { --stage-color: #43e97b; }
+        .stage:nth-child(5) { --stage-color: #fa709a; }
+        .stage:nth-child(6) { --stage-color: #ff9a9e; }
+        .stage:nth-child(7) { --stage-color: #a8edea; }
+        .stage:nth-child(8) { --stage-color: #ffeaa7; }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .timeline {
+                padding: 30px 20px;
+            }
+            
+            .stage {
+                padding-left: 80px;
+            }
+            
+            .timeline-line, .progress-line {
+                left: 40px;
+            }
+            
+            .stage-marker {
+                left: 32px;
+            }
+            
+            .current-indicator {
+                left: 25px;
+            }
+            
+            .stage-time {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .stage-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .stage-toggle {
+                align-self: flex-end;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fasting Stages Timeline</h1>
+            <p>Track your body's biological changes during fasting</p>
+        </div>
+        
+        <div class="controls">
+            <div class="time-input">
+                <label for="start-time">Fast Start Time:</label>
+                <input type="datetime-local" id="start-time" />
+            </div>
+            <div class="current-status">
+                <div class="current-time" id="current-time">2:34 PM</div>
+                <div class="elapsed-time" id="elapsed-time">6h 34m elapsed</div>
+            </div>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-header">
+                <h2>Biological Fasting Stages</h2>
+                <div class="timeline-subtitle">Your body's transformation during extended fasting</div>
+            </div>
+            
+            <div class="stages-container">
+                <div class="timeline-line"></div>
+                <div class="progress-line" id="progress-line"></div>
+                <div class="current-indicator" id="current-indicator"></div>
+                
+                <div class="stage" data-start="0" data-end="4">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">0-4 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Digestion & Absorption</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Your body is still processing the last meal. Blood sugar and insulin levels remain elevated as nutrients are absorbed and stored.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Active Digestion</div>
+                                <div class="benefit-tag">High Insulin</div>
+                                <div class="benefit-tag">Glucose Absorption</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="4" data-end="12">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">4-12 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Blood Sugar Stabilization</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Insulin levels drop and blood sugar stabilizes. Your body begins transitioning from fed to fasted state, starting to use stored energy.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Insulin Sensitivity</div>
+                                <div class="benefit-tag">Stable Blood Sugar</div>
+                                <div class="benefit-tag">Glycogen Usage</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="12" data-end="18">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">12-18 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Ketosis Initiation</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Liver glycogen stores become depleted. Your body begins producing ketones as an alternative fuel source, marking the entry into nutritional ketosis.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Ketone Production</div>
+                                <div class="benefit-tag">Fat Burning</div>
+                                <div class="benefit-tag">Mental Clarity</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="18" data-end="24">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">18-24 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Fat Burning Mode</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Full ketosis is achieved. Your body efficiently burns stored fat for energy. Growth hormone levels increase significantly, promoting fat loss and muscle preservation.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Peak Fat Oxidation</div>
+                                <div class="benefit-tag">Growth Hormone ↑</div>
+                                <div class="benefit-tag">Metabolic Flexibility</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="24" data-end="48">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">24-48 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Autophagy Activation</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Cellular cleanup processes accelerate. Autophagy removes damaged cells and proteins, promoting cellular renewal and longevity benefits.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Cellular Cleanup</div>
+                                <div class="benefit-tag">Protein Recycling</div>
+                                <div class="benefit-tag">Anti-aging</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="48" data-end="72">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">48-72 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Deep Autophagy</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Maximum autophagy activation occurs. Stem cell regeneration begins, immune system resets, and inflammation markers significantly decrease.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Immune Reset</div>
+                                <div class="benefit-tag">Stem Cell Activation</div>
+                                <div class="benefit-tag">Inflammation ↓</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="72" data-end="120">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">72-120 hours</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Immune System Regeneration</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Profound immune system regeneration occurs. New immune cells are generated, and the body experiences maximum therapeutic benefits from extended fasting.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Immune Regeneration</div>
+                                <div class="benefit-tag">Therapeutic Benefits</div>
+                                <div class="benefit-tag">Longevity Activation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage" data-start="120" data-end="168">
+                    <div class="stage-marker"></div>
+                    <div class="stage-header" onclick="toggleStage(this)">
+                        <div class="stage-header-left">
+                            <div class="stage-time">
+                                <div class="stage-duration">5-7 days</div>
+                                <div class="stage-start-time">Starts: Loading...</div>
+                            </div>
+                            <div class="stage-title">Extended Therapeutic Fasting</div>
+                        </div>
+                        <div class="stage-toggle">▼</div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-content-inner">
+                            <div class="stage-description">
+                                Maximum therapeutic benefits are achieved. This level should only be attempted under medical supervision for specific therapeutic purposes.
+                            </div>
+                            <div class="stage-benefits">
+                                <div class="benefit-tag">Medical Supervision</div>
+                                <div class="benefit-tag">Therapeutic Level</div>
+                                <div class="benefit-tag">Maximum Benefits</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let startTime = new Date();
+        startTime.setHours(8, 0, 0, 0); // Default start time 8:00 AM
+        
+        // Set default start time in input
+        const startTimeInput = document.getElementById('start-time');
+        startTimeInput.value = startTime.toISOString().slice(0, 16);
+        
+        // Update start time when input changes
+        startTimeInput.addEventListener('change', (e) => {
+            startTime = new Date(e.target.value);
+            updateTimeline();
+        });
+        
+        function toggleStage(header) {
+            const stage = header.parentElement;
+            const content = stage.querySelector('.stage-content');
+            const toggle = header.querySelector('.stage-toggle');
+            
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        }
+        
+        function formatDateTime(date) {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const dayName = days[date.getDay()];
+            const monthName = months[date.getMonth()];
+            const day = date.getDate();
+            const year = date.getFullYear();
+            const time = date.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            return `${dayName} ${monthName} ${day} ${year} ${time}`;
+        }
+        
+        function updateTimeline() {
+            const now = new Date();
+            const elapsed = now - startTime;
+            const elapsedHours = elapsed / (1000 * 60 * 60);
+            
+            // Update time display
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            const hours = Math.floor(elapsedHours);
+            const minutes = Math.floor((elapsedHours % 1) * 60);
+            
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('elapsed-time').textContent = 
+                `${hours}h ${minutes}m elapsed`;
+            
+            // Update stages
+            const stages = document.querySelectorAll('.stage');
+            let activeStageIndex = -1;
+            
+            stages.forEach((stage, index) => {
+                const startHour = parseFloat(stage.dataset.start);
+                const endHour = parseFloat(stage.dataset.end);
+                
+                // Calculate stage start time
+                const stageStartTime = new Date(startTime.getTime() + (startHour * 60 * 60 * 1000));
+                const formattedStartTime = formatDateTime(stageStartTime);
+                
+                // Update stage start time display
+                const startTimeElement = stage.querySelector('.stage-start-time');
+                startTimeElement.textContent = `Starts: ${formattedStartTime}`;
+                
+                stage.classList.remove('active', 'completed');
+                
+                if (elapsedHours >= startHour && elapsedHours < endHour) {
+                    stage.classList.add('active');
+                    activeStageIndex = index;
+                    startTimeElement.textContent = `Started: ${formattedStartTime}`;
+                } else if (elapsedHours >= endHour) {
+                    stage.classList.add('completed');
+                    startTimeElement.textContent = `Started: ${formattedStartTime}`;
+                }
+            });
+            
+            // Update progress line
+            const maxHours = 168; // 7 days
+            const progressPercent = Math.min((elapsedHours / maxHours) * 100, 100);
+            const timelineHeight = document.querySelector('.stages-container').offsetHeight;
+            const progressHeight = (progressPercent / 100) * timelineHeight;
+            
+            document.getElementById('progress-line').style.height = progressHeight + 'px';
+            
+            // Update current indicator position
+            const indicator = document.getElementById('current-indicator');
+            if (activeStageIndex >= 0) {
+                const activeStage = stages[activeStageIndex];
+                const stageRect = activeStage.getBoundingClientRect();
+                const containerRect = document.querySelector('.stages-container').getBoundingClientRect();
+                const relativeTop = stageRect.top - containerRect.top + 20;
+                
+                indicator.style.top = relativeTop + 'px';
+                indicator.style.display = 'flex';
+            } else if (elapsedHours < 0) {
+                indicator.style.top = '0px';
+                indicator.style.display = 'flex';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        // Update every second
+        updateTimeline();
+        setInterval(updateTimeline, 1000);
+        
+        // Add entrance animation
+        const stages = document.querySelectorAll('.stage');
+        stages.forEach((stage, index) => {
+            stage.style.animationDelay = `${index * 0.1}s`;
+            stage.style.animation = 'fadeInUp 0.6s ease forwards';
+        });
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

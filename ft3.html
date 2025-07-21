@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fasting Intervals Timeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .time-display {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .current-time {
+            font-size: 3rem;
+            font-weight: 200;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        
+        .start-time {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .elapsed-time {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .timeline-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .timeline-header h2 {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-subtitle {
+            color: #718096;
+            font-size: 1rem;
+        }
+        
+        .intervals-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .interval-row {
+            position: relative;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid var(--interval-color);
+            transition: all 0.3s ease;
+        }
+        
+        .interval-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .interval-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .interval-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .interval-duration {
+            font-size: 0.9rem;
+            color: #718096;
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .timeline-bar {
+            position: relative;
+            height: 40px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .fasting-period {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--interval-color);
+            border-radius: 20px;
+            opacity: 0.3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .eating-period {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: #48bb78;
+            border-radius: 20px;
+            opacity: 0.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .current-position {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 50px;
+            background: #ff4757;
+            border-radius: 2px;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+        
+        .current-position::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -4px;
+            width: 12px;
+            height: 12px;
+            background: #ff4757;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .current-position::after {
+            content: 'NOW';
+            position: absolute;
+            top: -30px;
+            left: -10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #ff4757;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #ff4757;
+        }
+        
+        .time-markers {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 8px;
+        }
+        
+        .phase-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .current-phase {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .time-remaining {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Color themes for different intervals */
+        .if-16-8 { --interval-color: #667eea; }
+        .if-18-6 { --interval-color: #f093fb; }
+        .if-20-4 { --interval-color: #4facfe; }
+        .if-omad { --interval-color: #43e97b; }
+        .if-36-12 { --interval-color: #fa709a; }
+        .if-48-0 { --interval-color: #ff9a9e; }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .current-time {
+                font-size: 2.5rem;
+            }
+            
+            .timeline-container {
+                padding: 20px;
+            }
+            
+            .interval-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fasting Timeline Tracker</h1>
+        </div>
+        
+        <div class="time-display">
+            <div class="current-time" id="current-time">2:34 PM</div>
+            <div class="start-time">Started at 8:00 AM</div>
+            <div class="elapsed-time" id="elapsed-time">6 hours 34 minutes elapsed</div>
+        </div>
+        
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <h2>All Fasting Intervals</h2>
+                <div class="timeline-subtitle">Real-time progress across different fasting methods</div>
+            </div>
+            
+            <div class="intervals-stack">
+                <!-- 16:8 Intermittent Fasting -->
+                <div class="interval-row if-16-8">
+                    <div class="interval-header">
+                        <div class="interval-name">16:8 Method</div>
+                        <div class="interval-duration">16h fast / 8h eating</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 66.67%;">FASTING (16h)</div>
+                        <div class="eating-period" style="left: 66.67%; width: 33.33%;">EATING (8h)</div>
+                        <div class="current-position" style="left: 41.25%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>12:00 PM</span>
+                        <span>4:00 PM</span>
+                        <span>8:00 PM</span>
+                        <span>8:00 AM +1</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Fasting Phase</div>
+                        <div class="time-remaining">1h 26m until eating window</div>
+                    </div>
+                </div>
+                
+                <!-- 18:6 Intermittent Fasting -->
+                <div class="interval-row if-18-6">
+                    <div class="interval-header">
+                        <div class="interval-name">18:6 Method</div>
+                        <div class="interval-duration">18h fast / 6h eating</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 75%;">FASTING (18h)</div>
+                        <div class="eating-period" style="left: 75%; width: 25%;">EATING (6h)</div>
+                        <div class="current-position" style="left: 36.46%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>2:00 PM</span>
+                        <span>8:00 PM</span>
+                        <span>8:00 AM +1</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Fasting Phase</div>
+                        <div class="time-remaining">5h 26m until eating window</div>
+                    </div>
+                </div>
+                
+                <!-- 20:4 Warrior Diet -->
+                <div class="interval-row if-20-4">
+                    <div class="interval-header">
+                        <div class="interval-name">20:4 Warrior Diet</div>
+                        <div class="interval-duration">20h fast / 4h eating</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 83.33%;">FASTING (20h)</div>
+                        <div class="eating-period" style="left: 83.33%; width: 16.67%;">EATING (4h)</div>
+                        <div class="current-position" style="left: 32.92%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>4:00 PM</span>
+                        <span>8:00 PM</span>
+                        <span>8:00 AM +1</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Fasting Phase</div>
+                        <div class="time-remaining">9h 26m until eating window</div>
+                    </div>
+                </div>
+                
+                <!-- OMAD (One Meal A Day) -->
+                <div class="interval-row if-omad">
+                    <div class="interval-header">
+                        <div class="interval-name">OMAD (23:1)</div>
+                        <div class="interval-duration">23h fast / 1h eating</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 95.83%;">FASTING (23h)</div>
+                        <div class="eating-period" style="left: 95.83%; width: 4.17%;">MEAL (1h)</div>
+                        <div class="current-position" style="left: 28.47%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>7:00 PM</span>
+                        <span>8:00 PM</span>
+                        <span>8:00 AM +1</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Fasting Phase</div>
+                        <div class="time-remaining">16h 26m until meal time</div>
+                    </div>
+                </div>
+                
+                <!-- 36:12 Extended Fasting -->
+                <div class="interval-row if-36-12">
+                    <div class="interval-header">
+                        <div class="interval-name">36:12 Extended</div>
+                        <div class="interval-duration">36h fast / 12h eating</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 75%;">FASTING (36h)</div>
+                        <div class="eating-period" style="left: 75%; width: 25%;">EATING (12h)</div>
+                        <div class="current-position" style="left: 18.06%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>8:00 PM +1</span>
+                        <span>8:00 AM +2</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Fasting Phase</div>
+                        <div class="time-remaining">29h 26m until eating window</div>
+                    </div>
+                </div>
+                
+                <!-- 48 Hour Fast -->
+                <div class="interval-row if-48-0">
+                    <div class="interval-header">
+                        <div class="interval-name">48 Hour Fast</div>
+                        <div class="interval-duration">48h continuous fast</div>
+                    </div>
+                    <div class="timeline-bar">
+                        <div class="fasting-period" style="width: 100%;">FASTING (48h)</div>
+                        <div class="current-position" style="left: 13.54%;"></div>
+                    </div>
+                    <div class="time-markers">
+                        <span>8:00 AM</span>
+                        <span>8:00 AM +1</span>
+                        <span>8:00 AM +2</span>
+                    </div>
+                    <div class="phase-info">
+                        <div class="current-phase">Currently: Extended Fasting</div>
+                        <div class="time-remaining">41h 26m until fast completion</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Start time for all fasts (8:00 AM today)
+        const startTime = new Date();
+        startTime.setHours(8, 0, 0, 0);
+        
+        function updateTimeDisplay() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            const elapsed = now - startTime;
+            const hours = Math.floor(elapsed / (1000 * 60 * 60));
+            const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('elapsed-time').textContent = 
+                `${hours} hours ${minutes} minutes elapsed`;
+        }
+        
+        function updatePositions() {
+            const now = new Date();
+            const elapsed = now - startTime;
+            const elapsedHours = elapsed / (1000 * 60 * 60);
+            
+            // Update position indicators based on elapsed time
+            const intervals = [
+                { element: document.querySelector('.if-16-8 .current-position'), cycle: 24 },
+                { element: document.querySelector('.if-18-6 .current-position'), cycle: 24 },
+                { element: document.querySelector('.if-20-4 .current-position'), cycle: 24 },
+                { element: document.querySelector('.if-omad .current-position'), cycle: 24 },
+                { element: document.querySelector('.if-36-12 .current-position'), cycle: 48 },
+                { element: document.querySelector('.if-48-0 .current-position'), cycle: 48 }
+            ];
+            
+            intervals.forEach((interval, index) => {
+                const cyclePosition = (elapsedHours % interval.cycle) / interval.cycle;
+                const percentage = cyclePosition * 100;
+                interval.element.style.left = `${Math.min(percentage, 100)}%`;
+            });
+        }
+        
+        // Update every second
+        updateTimeDisplay();
+        updatePositions();
+        setInterval(() => {
+            updateTimeDisplay();
+            updatePositions();
+        }, 1000);
+        
+        // Add staggered animation
+        const rows = document.querySelectorAll('.interval-row');
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.1}s`;
+            row.style.animation = 'slideInLeft 0.8s ease forwards';
+        });
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            .interval-row {
+                opacity: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

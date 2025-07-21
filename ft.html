@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Fasting Timeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .input-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .timeline {
+            margin-top: 30px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .timeline-item.completed {
+            border-left-color: #48bb78;
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+        }
+
+        .timeline-item.current {
+            border-left-color: #ed8936;
+            background: linear-gradient(135deg, #fffaf0 0%, #fef5e7 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .timeline-item.completed .timeline-icon {
+            background: #48bb78;
+            color: white;
+        }
+
+        .timeline-item.current .timeline-icon {
+            background: #ed8936;
+            color: white;
+        }
+
+        .timeline-item:not(.completed):not(.current) .timeline-icon {
+            background: #e2e8f0;
+            color: #a0aec0;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .timeline-time {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .timeline-description {
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .current-status {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #bee3f8;
+        }
+
+        .current-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2b6cb0;
+            margin-bottom: 5px;
+        }
+
+        .current-phase {
+            color: #2c5282;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Fasting Timeline</h1>
+        
+        <div class="input-section">
+            <label for="lastMeal">When did you last eat?</label>
+            <input type="datetime-local" id="lastMeal">
+            <button onclick="generateTimeline()">Start Fasting Timer</button>
+        </div>
+
+        <div id="currentStatus" class="current-status hidden">
+            <div class="current-time" id="currentTime">0h 0m</div>
+            <div class="current-phase" id="currentPhase">Fasting in progress...</div>
+        </div>
+
+        <div id="timeline" class="timeline hidden"></div>
+    </div>
+
+    <script>
+        let fastingStartTime = null;
+        let updateInterval = null;
+
+        const fastingMilestones = [
+            {
+                hours: 1,
+                title: "Digestion Complete",
+                description: "Your body has finished digesting your last meal",
+                icon: "🍽️"
+            },
+            {
+                hours: 4,
+                title: "Blood Sugar Stable",
+                description: "Insulin levels normalize and blood sugar stabilizes",
+                icon: "📊"
+            },
+            {
+                hours: 12,
+                title: "Ketosis Begins",
+                description: "Your body starts producing ketones for energy",
+                icon: "⚡"
+            },
+            {
+                hours: 16,
+                title: "Autophagy Activated",
+                description: "Cellular cleanup and repair processes begin",
+                icon: "🔄"
+            },
+            {
+                hours: 18,
+                title: "Fat Burning Peak",
+                description: "Your body is efficiently burning stored fat",
+                icon: "🔥"
+            },
+            {
+                hours: 24,
+                title: "Growth Hormone Boost",
+                description: "Growth hormone levels increase significantly",
+                icon: "💪"
+            },
+            {
+                hours: 48,
+                title: "Deep Autophagy",
+                description: "Maximum cellular regeneration and detoxification",
+                icon: "✨"
+            },
+            {
+                hours: 72,
+                title: "Immune System Reset",
+                description: "Stem cell regeneration and immune system renewal",
+                icon: "🛡️"
+            }
+        ];
+
+        function generateTimeline() {
+            const lastMealInput = document.getElementById('lastMeal');
+            const lastMealTime = new Date(lastMealInput.value);
+            
+            if (!lastMealInput.value) {
+                alert('Please select your last meal time');
+                return;
+            }
+
+            fastingStartTime = lastMealTime;
+            
+            document.getElementById('currentStatus').classList.remove('hidden');
+            document.getElementById('timeline').classList.remove('hidden');
+            
+            renderTimeline();
+            
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(updateCurrentStatus, 1000);
+            updateCurrentStatus();
+        }
+
+        function renderTimeline() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            fastingMilestones.forEach((milestone, index) => {
+                const milestoneTime = new Date(fastingStartTime.getTime() + milestone.hours * 60 * 60 * 1000);
+                const currentTime = new Date();
+                const isCompleted = currentTime >= milestoneTime;
+                const isCurrent = !isCompleted && (index === 0 || currentTime >= new Date(fastingStartTime.getTime() + fastingMilestones[index - 1].hours * 60 * 60 * 1000));
+                
+                const timelineItem = document.createElement('div');
+                timelineItem.className = `timeline-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`;
+                
+                timelineItem.innerHTML = `
+                    <div class="timeline-icon">${isCompleted ? '✅' : milestone.icon}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${milestone.title}</div>
+                        <div class="timeline-time">${formatTime(milestoneTime)} (${milestone.hours}h mark)</div>
+                        <div class="timeline-description">${milestone.description}</div>
+                    </div>
+                `;
+                
+                timeline.appendChild(timelineItem);
+            });
+        }
+
+        function updateCurrentStatus() {
+            if (!fastingStartTime) return;
+            
+            const currentTime = new Date();
+            const fastingDuration = currentTime - fastingStartTime;
+            const hours = Math.floor(fastingDuration / (1000 * 60 * 60));
+            const minutes = Math.floor((fastingDuration % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('currentTime').textContent = `${hours}h ${minutes}m`;
+            
+            // Update phase
+            let currentPhase = "Starting your fast...";
+            for (let i = fastingMilestones.length - 1; i >= 0; i--) {
+                if (hours >= fastingMilestones[i].hours) {
+                    currentPhase = `${fastingMilestones[i].title} phase`;
+                    break;
+                }
+            }
+            
+            document.getElementById('currentPhase').textContent = currentPhase;
+            
+            // Re-render timeline to update completion status
+            renderTimeline();
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+
+        // Set default time to current time
+        window.onload = function() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('lastMeal').value = now.toISOString().slice(0, 16);
+        };
+    </script>
+</body>
+</html>
