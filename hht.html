@@ -578,8 +578,9 @@
         .form-group input[type="text"],
         .form-group input[type="number"],
         .form-group input[type="date"],
-        .form-group input[type="email"], /* Added for auth */
-        .form-group input[type="password"], /* Added for auth */
+        .form-group input[type="time"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
         .form-group select,
         .form-group textarea {
             width: 100%;
@@ -983,15 +984,15 @@
                     const form = modal.querySelector('form');
                     if (form) {
                         form.reset();
-                        const otherInputDiv = form.querySelector('.other-input');
-                        if (otherInputDiv) {
+                        const otherInputDivs = form.querySelectorAll('.other-input'); // Select all other-input divs
+                        otherInputDivs.forEach(otherInputDiv => {
                             otherInputDiv.style.display = 'none';
                             const otherInputField = otherInputDiv.querySelector('input, textarea');
                             if (otherInputField) {
                                 otherInputField.value = '';
                                 otherInputField.removeAttribute('required');
                             }
-                        }
+                        });
                     }
                 }
             } else {
@@ -1043,17 +1044,33 @@
          */
         function toggleOtherInput(event) {
             const selectElement = event.target;
-            const formGroup = selectElement.closest('.form-group');
-            if (!formGroup) {
-                console.error('toggleOtherInput: Parent form-group not found.');
+            // Find the closest common ancestor that contains both the select and its associated other-input div
+            const parentContainer = selectElement.closest('.form-group') || selectElement.closest('form'); 
+            if (!parentContainer) {
+                console.error('toggleOtherInput: Could not find a suitable parent container for the select element.');
                 return;
             }
-            const otherInputDiv = formGroup.nextElementSibling;
             
-            if (otherInputDiv && otherInputDiv.classList.contains('other-input')) {
+            // Find the specific 'other-input' div that is a sibling or within the same parent container
+            let otherInputDiv = null;
+            if (selectElement.id === 'vaccineType') {
+                otherInputDiv = document.getElementById('otherVaccineInput');
+            } else if (selectElement.id === 'dewormingProduct') {
+                otherInputDiv = document.getElementById('otherDewormingInput');
+            } else if (selectElement.id === 'farrierService') {
+                otherInputDiv = document.getElementById('otherFarrierInput');
+            } else if (selectElement.id === 'vetVisitType') {
+                otherInputDiv = document.getElementById('otherVetInput');
+            } else if (selectElement.id === 'feedType') {
+                otherInputDiv = document.getElementById('otherFeedTypeInput');
+            } else if (selectElement.id === 'trainingType') { // New for training
+                otherInputDiv = document.getElementById('otherTrainingTypeInput');
+            }
+
+            if (otherInputDiv) {
                 const otherInputField = otherInputDiv.querySelector('input, textarea');
                 if (!otherInputField) {
-                    console.error('toggleOtherInput: Other input field not found within .other-input div.');
+                    console.error('toggleOtherInput: Other input field not found within the designated .other-input div.');
                     return;
                 }
 
@@ -1065,8 +1082,11 @@
                     otherInputField.removeAttribute('required');
                     otherInputField.value = '';
                 }
+            } else {
+                console.warn(`toggleOtherInput: No specific 'other-input' div found for select ID: ${selectElement.id}`);
             }
         }
+
 
         // --- Firebase Data Listeners & Horse Management ---
 
@@ -1153,7 +1173,9 @@
                     vaccinations: {},
                     deworming: {},
                     farrier: {},
-                    veterinary: {}
+                    veterinary: {},
+                    feeding: {},
+                    training: {} // Initialize training records
                 }
             };
             
@@ -1199,6 +1221,8 @@
             document.getElementById('dewormingRecords').innerHTML = '<div class="empty-state">No records yet. Click + Add to start.</div>';
             document.getElementById('farrierRecords').innerHTML = '<div class="empty-state">No records yet. Click + Add to start.</div>';
             document.getElementById('veterinaryRecords').innerHTML = '<div class="empty-state">No records yet. Click + Add to start.</div>';
+            document.getElementById('feedingRecords').innerHTML = '<div class="empty-state">No records yet. Click + Add to start.</div>';
+            document.getElementById('trainingRecords').innerHTML = '<div class="empty-state">No records yet. Click + Add to start.</div>'; // New for training
         }
 
         /**
@@ -1217,6 +1241,8 @@
             loadRecords('deworming', 'dewormingRecords');
             loadRecords('farrier', 'farrierRecords');
             loadRecords('veterinary', 'veterinaryRecords');
+            loadRecords('feeding', 'feedingRecords');
+            loadRecords('training', 'trainingRecords'); // New for training
         }
 
         /**
@@ -1337,6 +1363,10 @@
                     return record.service || 'Farrier Visit';
                 case 'veterinary':
                     return record.visitType || 'Veterinary Visit';
+                case 'feeding':
+                    return `${record.feedType || 'Feed'} at ${record.time || 'N/A'}`;
+                case 'training': // New case for training
+                    return `${record.trainingType || 'Training'} Session`;
                 default:
                     return 'Record';
             }
@@ -1376,6 +1406,16 @@
                     if (record.nextDue) details += `<p><strong>Next Check-up:</strong> ${formatDate(record.nextDue)}</p>`;
                     if (record.notes) details += `<p><strong>Notes:</strong> ${record.notes}</p>`;
                     break;
+                case 'feeding':
+                    if (record.portion) details += `<p><strong>Portion:</strong> ${record.portion}</p>`;
+                    if (record.supplements) details += `<p><strong>Supplements:</strong> ${record.supplements}</p>`;
+                    if (record.notes) details += `<p><strong>Notes:</strong> ${record.notes}</p>`;
+                    break;
+                case 'training': // New case for training
+                    if (record.duration) details += `<p><strong>Duration:</strong> ${record.duration}</p>`;
+                    if (record.notes) details += `<p><strong>Notes:</strong> ${record.notes}</p>`;
+                    if (record.goals) details += `<p><strong>Goals:</strong> ${record.goals}</p>`;
+                    break;
             }
             return details;
         }
@@ -1395,6 +1435,10 @@
                     return `${record.service || 'Farrier visit'} by ${record.farrier || 'Farrier'}`;
                 case 'veterinary':
                     return `${record.visitType || 'Veterinary visit'} by ${record.veterinarian || 'Veterinarian'}`;
+                case 'feeding':
+                    return `${record.feedType || 'Feed'} at ${record.time || 'N/A'}`;
+                case 'training': // New case for training
+                    return `${record.trainingType || 'Training'} session recorded`;
                 default:
                     return 'Health record updated';
             }
@@ -1618,6 +1662,99 @@
             }
         }
 
+        /**
+         * Adds a feeding schedule record to the selected horse in Firebase.
+         * @param {Event} e - The form submission event.
+         */
+        async function addFeedingSchedule(e) {
+            e.preventDefault();
+            if (!userId || !selectedHorseKey) {
+                showMessage('Error', 'Please sign in and select a horse first.');
+                return;
+            }
+
+            try {
+                const date = document.getElementById('feedDate').value;
+                const time = document.getElementById('feedTime').value;
+                const feedType = document.getElementById('feedType').value;
+                const otherFeedType = document.getElementById('otherFeedType').value.trim();
+                const portion = document.getElementById('feedPortion').value.trim();
+                const supplements = document.getElementById('feedSupplements').value.trim();
+                const notes = document.getElementById('feedNotes').value.trim();
+
+                const finalFeedType = feedType === 'Other' ? otherFeedType : feedType;
+
+                if (!date || !time || !finalFeedType || !portion) {
+                    showMessage('Input Required', 'Date, Time, Feed Type, and Portion are required.');
+                    return;
+                }
+
+                const feedingData = {
+                    date: date,
+                    time: time,
+                    feedType: finalFeedType,
+                    portion: portion,
+                    supplements: supplements,
+                    notes: notes
+                };
+
+                const newFeedingRef = push(ref(database, `artifacts/${appId}/users/${userId}/horses/${selectedHorseKey}/records/feeding`));
+                await set(newFeedingRef, feedingData);
+                closeModal('addFeedingModal');
+                document.getElementById('addFeedingForm').reset();
+                showMessage('Success', 'Feeding schedule added successfully!');
+            } catch (error) {
+                console.error("Error in addFeedingSchedule function: ", error);
+                showMessage('Error', `Failed to add feeding schedule: ${error.message}. Check console for details.`);
+            }
+        }
+
+        /**
+         * Adds a training session record to the selected horse in Firebase.
+         * @param {Event} e - The form submission event.
+         */
+        async function addTrainingSession(e) {
+            e.preventDefault();
+            if (!userId || !selectedHorseKey) {
+                showMessage('Error', 'Please sign in and select a horse first.');
+                return;
+            }
+
+            try {
+                const date = document.getElementById('trainingDate').value;
+                const trainingType = document.getElementById('trainingType').value;
+                const otherTrainingType = document.getElementById('otherTrainingType').value.trim();
+                const duration = document.getElementById('trainingDuration').value.trim();
+                const notes = document.getElementById('trainingNotes').value.trim();
+                const goals = document.getElementById('trainingGoals').value.trim();
+
+                const finalTrainingType = trainingType === 'Other' ? otherTrainingType : trainingType;
+
+                if (!date || !finalTrainingType) {
+                    showMessage('Input Required', 'Date and Training Type are required.');
+                    return;
+                }
+
+                const trainingData = {
+                    date: date,
+                    trainingType: finalTrainingType,
+                    duration: duration,
+                    notes: notes,
+                    goals: goals
+                };
+
+                const newTrainingRef = push(ref(database, `artifacts/${appId}/users/${userId}/horses/${selectedHorseKey}/records/training`));
+                await set(newTrainingRef, trainingData);
+                closeModal('addTrainingModal');
+                document.getElementById('addTrainingForm').reset();
+                showMessage('Success', 'Training session added successfully!');
+            } catch (error) {
+                console.error("Error in addTrainingSession function: ", error);
+                showMessage('Error', `Failed to add training session: ${error.message}. Check console for details.`);
+            }
+        }
+
+
         // --- Reminder System ---
 
         /**
@@ -1641,6 +1778,7 @@
                         if (recordsOfType) { // Check if there are records for this type
                             for (const recordKey in recordsOfType) {
                                 const record = recordsOfType[recordKey];
+                                // Only add to reminders if it has a nextDue date
                                 if (record.nextDue) {
                                     const dueDate = new Date(record.nextDue);
                                     dueDate.setHours(0, 0, 0, 0);
@@ -1652,7 +1790,7 @@
                                             'vaccinations': 'Vaccination',
                                             'deworming': 'Deworming',
                                             'farrier': 'Farrier',
-                                            'veterinary': 'Vet Visit'
+                                            'veterinary': 'Vet Visit',
                                         };
                                         allReminders.push({
                                             horseName: horse.name,
@@ -1952,12 +2090,16 @@
             document.getElementById('addDewormingForm').addEventListener('submit', addDeworming);
             document.getElementById('addFarrierForm').addEventListener('submit', addFarrier);
             document.getElementById('addVeterinaryForm').addEventListener('submit', addVeterinary);
+            document.getElementById('addFeedingForm').addEventListener('submit', addFeedingSchedule);
+            document.getElementById('addTrainingForm').addEventListener('submit', addTrainingSession); // New for training
             
             // Attach change listeners for "Other" input toggling
             document.getElementById('vaccineType').addEventListener('change', toggleOtherInput);
             document.getElementById('dewormingProduct').addEventListener('change', toggleOtherInput);
             document.getElementById('farrierService').addEventListener('change', toggleOtherInput);
             document.getElementById('vetVisitType').addEventListener('change', toggleOtherInput);
+            document.getElementById('feedType').addEventListener('change', toggleOtherInput);
+            document.getElementById('trainingType').addEventListener('change', toggleOtherInput); // New for training
 
             // Attach import file listener
             document.getElementById('importFile').addEventListener('change', handleImport);
@@ -1968,6 +2110,8 @@
             closeModal('addDewormingModal');
             closeModal('addFarrierModal');
             closeModal('addVeterinaryModal');
+            closeModal('addFeedingModal');
+            closeModal('addTrainingModal'); // New for training
             closeModal('messageModal');
             closeModal('confirmModal');
 
@@ -2081,6 +2225,8 @@
                     <button class="tab" data-tab="deworming" onclick="switchTab('deworming')" aria-label="View deworming records">Deworming</button>
                     <button class="tab" data-tab="farrier" onclick="switchTab('farrier')" aria-label="View farrier records">Farrier</button>
                     <button class="tab" data-tab="veterinary" onclick="switchTab('veterinary')" aria-label="View veterinary records">Veterinary</button>
+                    <button class="tab" data-tab="feeding" onclick="switchTab('feeding')" aria-label="View feeding schedules">Feeding</button>
+                    <button class="tab" data-tab="training" onclick="switchTab('training')" aria-label="View training log">Training</button> <!-- NEW TAB -->
                 </div>
                 <div class="mobile-tab-selector">
                     <label for="tabSelect" class="sr-only">Select Tab</label>
@@ -2090,6 +2236,8 @@
                         <option value="deworming">Deworming</option>
                         <option value="farrier">Farrier</option>
                         <option value="veterinary">Veterinary</option>
+                        <option value="feeding">Feeding</option>
+                        <option value="training">Training</option> <!-- NEW OPTION -->
                     </select>
                 </div>
             </div>
@@ -2123,6 +2271,20 @@
                 </button>
                 <div id="veterinaryRecords" class="record-list">
                     </div>
+            </div>
+            <div id="feedingContent" class="tab-content">
+                <button class="btn btn-success add-record-btn" onclick="openModal('addFeedingModal')" aria-label="Add new feeding schedule">
+                    <i class="fas fa-plus"></i> Add Feed Schedule
+                </button>
+                <div id="feedingRecords" class="record-list">
+                </div>
+            </div>
+            <div id="trainingContent" class="tab-content"> <!-- NEW TRAINING TAB CONTENT -->
+                <button class="btn btn-success add-record-btn" onclick="openModal('addTrainingModal')" aria-label="Add new training session">
+                    <i class="fas fa-plus"></i> Add Training Session
+                </button>
+                <div id="trainingRecords" class="record-list">
+                </div>
             </div>
         </div>
     </div>
@@ -2340,6 +2502,93 @@
                     <textarea id="vetNotes" rows="2"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" aria-label="Submit new veterinary visit">Add Veterinary Visit</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addFeedingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('addFeedingModal')" aria-label="Close add feeding schedule dialog">&times;</span>
+            <h2>Add Feeding Schedule</h2>
+            <form id="addFeedingForm">
+                <div class="form-group">
+                    <label for="feedDate">Date:</label>
+                    <input type="date" id="feedDate" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="feedTime">Time:</label>
+                    <input type="time" id="feedTime" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="feedType">Feed Type:</label>
+                    <select id="feedType" required onchange="toggleOtherInput(event)" aria-required="true">
+                        <option value="">-- Select Feed Type --</option>
+                        <option value="Hay">Hay</option>
+                        <option value="Grain">Grain</option>
+                        <option value="Pellets">Pellets</option>
+                        <option value="Chaff">Chaff</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group other-input" id="otherFeedTypeInput" style="display:none;">
+                    <label for="otherFeedType">Specify Other Feed Type:</label>
+                    <input type="text" id="otherFeedType">
+                </div>
+                <div class="form-group">
+                    <label for="feedPortion">Portion:</label>
+                    <input type="text" id="feedPortion" placeholder="e.g., 2 flakes, 1kg, 2 scoops" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="feedSupplements">Supplements:</label>
+                    <textarea id="feedSupplements" rows="2" placeholder="e.g., Biotin, Joint Supplement"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="feedNotes">Notes:</label>
+                    <textarea id="feedNotes" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" aria-label="Submit new feeding schedule">Add Feed Schedule</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addTrainingModal" class="modal"> <!-- NEW TRAINING MODAL -->
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('addTrainingModal')" aria-label="Close add training session dialog">&times;</span>
+            <h2>Add Training Session</h2>
+            <form id="addTrainingForm">
+                <div class="form-group">
+                    <label for="trainingDate">Date:</label>
+                    <input type="date" id="trainingDate" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="trainingType">Training Type:</label>
+                    <select id="trainingType" required onchange="toggleOtherInput(event)" aria-required="true">
+                        <option value="">-- Select Type --</option>
+                        <option value="Dressage">Dressage</option>
+                        <option value="Jumping">Jumping</option>
+                        <option value="Trail Ride">Trail Ride</option>
+                        <option value="Groundwork">Groundwork</option>
+                        <option value="Liberty">Liberty</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group other-input" id="otherTrainingTypeInput" style="display:none;">
+                    <label for="otherTrainingType">Specify Other Training Type:</label>
+                    <input type="text" id="otherTrainingType">
+                </div>
+                <div class="form-group">
+                    <label for="trainingDuration">Duration:</label>
+                    <input type="text" id="trainingDuration" placeholder="e.g., 45 minutes, 1 hour 30 minutes">
+                </div>
+                <div class="form-group">
+                    <label for="trainingNotes">Notes/Progress:</label>
+                    <textarea id="trainingNotes" rows="3" placeholder="e.g., Focused on lead changes, improved canter transitions."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="trainingGoals">Goals for Next Session:</label>
+                    <textarea id="trainingGoals" rows="2" placeholder="e.g., Work on bending, introduce pole work."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" aria-label="Submit new training session">Add Training Session</button>
             </form>
         </div>
     </div>
