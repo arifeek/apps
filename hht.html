@@ -2564,32 +2564,15 @@
                 });
 
                 // Initial authentication check for Canvas environment
-                if (initialAuthToken) {
-                    try {
-                        console.log("Attempting to sign in with custom token...");
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token provided by Canvas environment.");
-                    } catch (error) {
-                        console.error("Error signing in with custom token:", error);
-                        try {
-                            console.log("Falling back to anonymous sign-in...");
-                            await signInAnonymously(auth);
-                            console.log("Signed in anonymously as fallback.");
-                        } catch (anonError) {
-                            console.error("Error signing in anonymously:", anonError);
-                            showMessage('Authentication Error', `Failed to sign in anonymously: ${anonError.message}`);
-                        }
-                    }
-                } else {
-                    try {
-                        console.log("Attempting anonymous sign-in as no custom token was provided...");
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously as no custom token was provided.");
-                    } catch (anonError) {
-                        console.error("Error signing in anonymously:", anonError);
-                        showMessage('Authentication Error', `Failed to sign in anonymously: ${anonError.message}`);
-                    }
-                }
+            if (initialAuthToken) {
+                firebase.auth().signInWithCustomToken(initialAuthToken)
+                .then(() => console.log('Signed in with custom token'))
+                .catch(error => {
+                    console.error('Error signing in with custom token:', error);
+                    displayMessageModal('Login Error', 'Failed to sign in automatically. Please log in manually.', true);
+                    // The app will now remain on the login screen, waiting for user input.
+            });
+    }
 
             } catch (error) {
                 console.error("Firebase initialization or initial sign-in failed:", error);
